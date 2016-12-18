@@ -1,0 +1,9 @@
+.Rproj.user
+.RData
+.Rhistory
+*~
+*.zip
+*.gz
+*.RData
+
+
