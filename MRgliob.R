@@ -1,5 +1,5 @@
 # get sample meta data
-tab <- read.delim("Mouse_data/sample_info.txt", stringsAsFactors = F)
+tab <- read.delim("Rate_data/sample_info.txt", stringsAsFactors = F)
 rownames(tab) <- tab$filename
 tab
 
