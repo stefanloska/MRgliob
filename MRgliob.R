@@ -1,11 +1,11 @@
 # get sample meta data
-tab <- read.delim("Rate_data/sample_info.txt", stringsAsFactors = F)
+tab <- read.delim("Rat_data/sample_info.txt", stringsAsFactors = F)
 rownames(tab) <- tab$filename
 tab
 
 # get microarray signal
 library(oligo)
-ab <- read.celfiles(filenames = list.celfiles("Mouse_data", full.names = T), phenoData = AnnotatedDataFrame(tab))
+ab <- read.celfiles(filenames = list.celfiles("Rat_data", full.names = T), phenoData = AnnotatedDataFrame(tab))
 
 # rma - two levels to compare
 R <- lapply(c("probeset", "core"), function(target){
