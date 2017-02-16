@@ -78,5 +78,35 @@ miss <- miss[order(as.numeric(miss))] # looks like they are pseudogenes - check 
 
 # optimal slution - use ragene21sttranscriptcluster.db - easier
 
+# choose columns for feature data
+fd <- select(ragene21sttranscriptcluster.db, keys = rownames(R), keytype = "PROBEID", columns = c("ENTREZID", "SYMBOL", "GENENAME"))
+dim(fd)
+head(fd)
+# remove NAs
+fd <- fd[!is.na(fd$ENTREZID),]
+dim(fd)
+head(fd)
+# count frequency of probesets
+freq <- table(fd$PROBEID)
+length(freq)
+sum(freq > 1)
+# select unique probesets
+dambg <- names(freq)[freq == 1]
+# subset feature data to unique probesets
+fd <- fd[fd$PROBEID %in% dambg, ]
+dim(fd)
+head(fd)
+rownames(fd) <- fd$PROBEID
+
+# subser eSet to unique probes with annotations
+dim(R)
+R <- R[rownames(fd)]
+dim(R)
+# replace fData
+fData(R) <- fd
+# check dims
+dim(fd)
+dim(R)
+dim(fData(R))
 
 
