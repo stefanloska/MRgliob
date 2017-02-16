@@ -9,7 +9,7 @@ ab <- read.celfiles(filenames = list.celfiles("Rat_data", full.names = T), pheno
 
 # rma - two levels to compare
 R <- lapply(c("probeset", "core"), function(target){
-  rma(ab, target = target)
+  oligo::rma(ab, target = target)
 })
 
 # look into id whne the same when differ
@@ -60,3 +60,23 @@ fna <- rownames(R)[is.na(fData(R)$geneassignment)]
 length(fna)
 miss <- xna[!xna %in% fna]
 fna[!fna %in% xna]
+
+fData(R)[miss, "geneassignment"]
+fData(R)[miss, "geneassignment"][615] # probe with egid in fData but not in x
+# indeed no such egid in ragene21sttranscriptcluster.db:
+select(ragene21sttranscriptcluster.db, keys = "682635", keytype = "ENTREZID", columns = "PROBEID")
+
+# extract egids from fData, for those probes that have egis in fData but not in x
+miss <- fData(R)[miss, "geneassignment"]
+miss <- strsplit(miss, " /// ")
+miss <- lapply(miss, function(x){
+  ans <- strsplit(x, " // ")
+  unique(sapply(ans, function(x) tail(x, 1)))
+})
+miss <- unique(unlist(miss))
+miss <- miss[order(as.numeric(miss))] # looks like they are pseudogenes - check examples in ncbi
+
+# optimal slution - use ragene21sttranscriptcluster.db - easier
+
+
+
