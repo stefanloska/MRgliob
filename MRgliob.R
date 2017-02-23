@@ -92,6 +92,7 @@ miss <- miss[order(as.numeric(miss))] # looks like they are pseudogenes - check 
 # Remove ambigous probesets ####
 
 # choose columns for feature data
+library(ragene21sttranscriptcluster.db)
 fd <- select(ragene21sttranscriptcluster.db, keys = rownames(R), keytype = "PROBEID", columns = c("ENTREZID", "SYMBOL", "GENENAME"))
 dim(fd)
 head(fd)
