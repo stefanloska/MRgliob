@@ -94,6 +94,7 @@ miss <- miss[order(as.numeric(miss))] # looks like they are pseudogenes - check 
 # choose columns for feature data
 library(ragene21sttranscriptcluster.db)
 fd <- select(ragene21sttranscriptcluster.db, keys = rownames(R), keytype = "PROBEID", columns = c("ENTREZID", "SYMBOL", "GENENAME"))
+length(unique(fd$PROBEID))
 dim(fd)
 head(fd)
 # remove NAs
