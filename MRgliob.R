@@ -124,4 +124,15 @@ dim(fd)
 dim(R)
 dim(fData(R))
 
+# keep lines with at least one observation per group and not constant observations, i.e. sd in each group != 0
+(x <- exprs(R)[1,])
+sel <- apply(exprs(R), 1, function(x){
+  sds <- tapply(x, pData(R)$class, sd, na.rm = T)
+  all(sds != 0)
+})
+
+R <- R[sel,]
+
+
+
 
