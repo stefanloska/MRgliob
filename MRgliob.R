@@ -133,6 +133,28 @@ sel <- apply(exprs(R), 1, function(x){
 
 R <- R[sel,]
 
+# keep only one probeset per gene; this will be the one with highest variance
+sel <- tapply(seq_along(fData(R)$ENTREZID), fData(R)$ENTREZID, c)
+sel["100233206"]
+
+table(sapply(sel, length))
+
+(x <- which(fData(R)$ENTREZID == "100233206"))
+fData(R)[x,]
+
+sel <- tapply(seq_along(fData(R)$ENTREZID), fData(R)$ENTREZID, function(x){
+  if (length(x) == 1) x else{
+    vars <- apply(exprs(R)[x,], 1, var, na.rm = T)
+    x[which.max(vars)]
+  }
+})
+
+sel <- as.vector(sel)
+sel["100233206"]
+sel[1:5]
+
+R <- R[sel,]
+
 
 
 
