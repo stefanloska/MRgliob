@@ -155,6 +155,47 @@ sel[1:5]
 
 R <- R[sel,]
 
+# convert to human
+# get the data
+download.file("ftp://ftp.ncbi.nih.gov/pub/HomoloGene/build68/homologene.data", "homologene.data")
 
+#read the file
+hom <- read.delim("homologene.data", header = F,
+                  colClasses = c("character", "character", "character", "NULL", "NULL", "NULL"),
+                  col.names = c("id", "tax", "entrez", "NULL", "NULL", "NULL"))
+
+# restric to human and rat
+hom <- hom[hom$tax %in% c("9606", "10116"),]
+
+# remove disambiguities (and no pair), i.e. for each id need exactly one human and one rat gene
+table(table(hom$id))
+sel <- tapply(hom$tax, hom$id, function(x){
+  length(x) == 2 & length(unique(x)) == 2
+})
+
+i <- names(sel)[!sel][1:2]
+hom[hom$id == i[1],]
+hom[hom$id == i[2],]
+
+sel <- names(sel)[sel]
+
+hom <- hom[hom$id %in% sel,]
+
+table(table(hom$id))
+
+# convert fData
+ids <- hom$id[match(fData(R)$ENTREZID, hom$entrez)]
+ens <- hom$entrez[match(ids, hom$id)]
+
+fData(R)$ENTREZID[1:5]
+ids[1:5]
+ens[1:5]
+hom[hom$id %in% ids[1:5],]
+sum(is.na(ens))
+
+fData(R)$ENTREZID <- ens
+dim(R)
+R <- R[!is.na(fData(R)$ENTREZID),]
+dim(R)
 
 
