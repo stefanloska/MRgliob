@@ -155,7 +155,9 @@ sel[1:5]
 
 R <- R[sel,]
 
-# convert to human
+
+# Convert to human ####
+
 # get the data
 download.file("ftp://ftp.ncbi.nih.gov/pub/HomoloGene/build68/homologene.data", "homologene.data")
 
