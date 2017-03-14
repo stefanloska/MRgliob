@@ -15,7 +15,31 @@ library(oligo)
 
 # Preprocessing
 
+## Reading data
 
+
+
+```{r }
+function(dir, pData){
+  # get sample meta data
+  tab <- read.delim(paste(dir, pData, sep = "/"), stringsAsFactors = F)
+  rownames(tab) <- tab$filename
+
+  # get microarray signal
+  ab <- read.celfiles(filenames = list.celfiles(dir, full.names = T), phenoData = AnnotatedDataFrame(tab))
+  ab
+}
+```
+
+
+# RMA
+
+```{r }
+function(ab){
+  R <- oligo::rma(ab, target = "core")
+  R
+}
+```
 
 
 
