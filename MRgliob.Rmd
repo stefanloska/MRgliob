@@ -11,16 +11,18 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r, libraries}
 library(oligo)
+library(Biobase)
+library(AnnotationDbi)
 ```
 
-# Preprocessing
+# Get expression
 
 ## Reading data
 
-
+Read data from cel files and probe annotation file.
 
 ```{r }
-function(dir, pData){
+read_cell <- function(dir, pData){
   # get sample meta data
   tab <- read.delim(paste(dir, pData, sep = "/"), stringsAsFactors = F)
   rownames(tab) <- tab$filename
