@@ -46,6 +46,79 @@ rma_core <- function(ab){
 ```
 
 
+## Annotation
+
+Get annotation and remove probes mapping to more than one gene.
+
+```{r }
+annotate <- function(R, annot){
+  # choose columns for feature data
+  fd <- select(annot, keys = rownames(R), keytype = "PROBEID", columns = c("ENTREZID", "SYMBOL", "GENENAME"))
+  
+  fd <- fd[!is.na(fd$ENTREZID),]
+  
+  freq <- table(fd$PROBEID)
+  dambg <- names(freq)[freq == 1]
+  fd <- fd[fd$PROBEID %in% dambg, ]
+  rownames(fd) <- fd$PROBEID
+  
+  R <- R[rownames(fd)]
+  fData(R) <- fd
+  
+  R
+}
+
+```
+
+Pick up one probe for each gene. This will be the probe with the highest variance among samples.
+
+```{r}
+dedegen <- function(R){
+  # keep only one probeset per gene; this will be the one with highest variance
+  sel <- tapply(seq_along(fData(R)$ENTREZID), fData(R)$ENTREZID, c)
+  
+  sel <- tapply(seq_along(fData(R)$ENTREZID), fData(R)$ENTREZID, function(x){
+    if (length(x) == 1) x else{
+      vars <- apply(exprs(R)[x,], 1, var, na.rm = T)
+      x[which.max(vars)]
+    }
+  })
+  
+  sel <- as.vector(sel)
+  
+  R <- R[sel,]
+  R
+}
+
+```
+
+Convert to human.
+
+```{r}
+to_human <- function(R, hom, taxid){
+  # restric to human and taxid
+  hom <- hom[hom$tax %in% c("9606", taxid),]
+  
+  # remove disambiguities (and no pair), i.e. for each id need exactly one human and one taxid gene
+  sel <- tapply(hom$tax, hom$id, function(x){
+    length(x) == 2 & length(unique(x)) == 2
+  })
+  sel <- names(sel)[sel]
+  hom <- hom[hom$id %in% sel,]
+  
+  # convert fData
+  ids <- hom$id[match(fData(R)$ENTREZID, hom$entrez)]
+  ens <- hom$entrez[match(ids, hom$id)]
+  
+  fData(R)$ENTREZID <- ens
+  R <- R[!is.na(fData(R)$ENTREZID),]
+  
+  R
+}
+
+```
+
+
 
 
 
