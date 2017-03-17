@@ -34,10 +34,12 @@ read_cell <- function(dir, pData){
 ```
 
 
-# RMA
+## Preprocessing
+
+RMA
 
 ```{r }
-function(ab){
+rma_core <- function(ab){
   R <- oligo::rma(ab, target = "core")
   R
 }
