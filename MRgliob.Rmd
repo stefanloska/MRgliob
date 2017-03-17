@@ -118,6 +118,22 @@ to_human <- function(R, hom, taxid){
 
 ```
 
+## Get expression
+
+```{r}
+get_exprs <- function(dir, pData, annot, hom, taxid){
+  ab <- read_cell(dir, pData)
+  R <- rma_core(ab)
+  R <- annotate(R, annot)
+  R <- dedegen(R)
+  R <- to_human(R, hom, taxid)
+  R
+}
+
+```
+
+
+
 
 
 
