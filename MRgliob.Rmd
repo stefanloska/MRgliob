@@ -110,8 +110,9 @@ to_human <- function(R, hom, taxid){
   ids <- hom$id[match(fData(R)$ENTREZID, hom$entrez)]
   ens <- hom$entrez[match(ids, hom$id)]
   
-  fData(R)$ENTREZID <- ens
-  R <- R[!is.na(fData(R)$ENTREZID),]
+  fData(R)$HUMENTREZID <- ens
+  R <- R[!is.na(fData(R)$HUMENTREZID),]
+  rownames(R) <- fData(R)$HUMENTREZID
   
   R
 }

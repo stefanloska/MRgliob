@@ -195,9 +195,10 @@ ens[1:5]
 hom[hom$id %in% ids[1:5],]
 sum(is.na(ens))
 
-fData(R)$ENTREZID <- ens
+fData(R)$HUMENTREZID <- ens
 dim(R)
-R <- R[!is.na(fData(R)$ENTREZID),]
+R <- R[!is.na(fData(R)$HUMENTREZID),]
 dim(R)
 
+rownames(R) <- fData(R)$HUMENTREZID
 
