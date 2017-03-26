@@ -37,6 +37,8 @@ read_cel <- function(data_dir, s_info, skip = NULL){
   ab <- read.celfiles(filenames = filenames, phenoData = AnnotatedDataFrame(tab))
   ab
 }
+}
+}
 ```
 
 
