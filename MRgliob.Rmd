@@ -22,13 +22,13 @@ library(AnnotationDbi)
 Read data from cel files and probe annotation file.
 
 ```{r }
-read_cel <- function(dir, pData){
+read_cel <- function(data_dir, s_info){
   # get sample meta data
-  tab <- read.delim(paste(dir, pData, sep = "/"), stringsAsFactors = F)
+  tab <- read.delim(paste(data_dir, s_info, sep = "/"), stringsAsFactors = F)
   rownames(tab) <- tab$filename
 
   # get microarray signal
-  ab <- read.celfiles(filenames = list.celfiles(dir, full.names = T), phenoData = AnnotatedDataFrame(tab))
+  ab <- read.celfiles(filenames = list.celfiles(data_dir, full.names = T), phenoData = AnnotatedDataFrame(tab))
   ab
 }
 ```
@@ -122,8 +122,8 @@ to_human <- function(R, hom, taxid){
 ## Get expression
 
 ```{r}
-get_exprs <- function(dir, pData, annot, hom, taxid){
-  ab <- read_cel(dir, pData)
+get_exprs <- function(data_dir, s_info, annot, hom, taxid){
+  ab <- read_cel(data_dir, s_info)
   R <- rma_core(ab)
   R <- annotate(R, annot)
   R <- dedegen(R)
@@ -142,14 +142,14 @@ hom <- read.delim("homologene.data", header = F,
                   colClasses = c("character", "character", "character", "NULL", "NULL", "NULL"),
                   col.names = c("id", "tax", "entrez", "NULL", "NULL", "NULL"))
 
-Rat <- get_exprs(dir = "Rat_data", 
-          pData = "sample_info.txt", 
+Rat <- get_exprs(data_dir = "Rat_data", 
+          s_info = "sample_info.txt", 
           annot = ragene21sttranscriptcluster.db::ragene21sttranscriptcluster.db, 
           hom = hom, 
           taxid = "10116")
 
-Mouse <- get_exprs(dir = "Mouse_data", 
-          pData = "sample_info.txt", 
+Mouse <- get_exprs(data_dir = "Mouse_data", 
+          s_info = "sample_info.txt", 
           annot = mogene21sttranscriptcluster.db::mogene21sttranscriptcluster.db, 
           hom = hom, 
           taxid = "10090")
