@@ -22,14 +22,22 @@ library(AnnotationDbi)
 Read data from cel files and probe annotation file.
 
 ```{r }
-read_cel <- function(data_dir, s_info){
+read_cel <- function(data_dir, s_info, skip = NULL){
   # get sample meta data
   tab <- read.delim(paste(data_dir, s_info, sep = "/"), stringsAsFactors = F)
   rownames(tab) <- tab$filename
+  # check sample_info vs. cel files
+  if (! setequal(tab$filename, list.celfiles(data_dir))) stop("sample info file doesn't fit available cel files")
 
+  # skip what is meant to skip
+  filenames <- list.celfiles(data_dir, full.names = T)
+  filenames <- filenames[!filenames %in% paste(data_dir, skip, sep = "/")]
+  
   # get microarray signal
-  ab <- read.celfiles(filenames = list.celfiles(data_dir, full.names = T), phenoData = AnnotatedDataFrame(tab))
+  ab <- read.celfiles(filenames = filenames, phenoData = AnnotatedDataFrame(tab))
   ab
+}
+}
 }
 ```
 
