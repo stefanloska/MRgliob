@@ -34,6 +34,7 @@ read_cel <- function(data_dir, s_info, skip = NULL){
 
   # get microarray signal
   ab <- read.celfiles(filenames = paste(data_dir, tab$filename, sep = "/"), phenoData = AnnotatedDataFrame(tab))
+  colnames(ab) <- tab$id
   ab
 }
 ```
