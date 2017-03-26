@@ -1,3 +1,7 @@
+library(oligo)
+library(Biobase)
+library(AnnotationDbi)
+
 # Read data ####
 
 # get sample meta data
