@@ -2,6 +2,8 @@ library(oligo)
 library(Biobase)
 library(AnnotationDbi)
 
+# Get expression ####
+
 # Read data ####
 
 # get sample meta data
@@ -206,3 +208,89 @@ dim(R)
 
 rownames(R) <- fData(R)$HUMENTREZID
 
+# To functions ####
+
+read_cell <- function(dir, pData){
+  # get sample meta data
+  tab <- read.delim(paste(dir, pData, sep = "/"), stringsAsFactors = F)
+  rownames(tab) <- tab$filename
+
+  # get microarray signal
+  ab <- read.celfiles(filenames = list.celfiles(dir, full.names = T), phenoData = AnnotatedDataFrame(tab))
+  ab
+}
+
+
+rma_core <- function(ab){
+  R <- oligo::rma(ab, target = "core")
+  R
+}
+
+
+annotate <- function(R, annot){
+  # choose columns for feature data
+  fd <- select(annot, keys = rownames(R), keytype = "PROBEID", columns = c("ENTREZID", "SYMBOL", "GENENAME"))
+
+  fd <- fd[!is.na(fd$ENTREZID),]
+
+  freq <- table(fd$PROBEID)
+  dambg <- names(freq)[freq == 1]
+  fd <- fd[fd$PROBEID %in% dambg, ]
+  rownames(fd) <- fd$PROBEID
+
+  R <- R[rownames(fd)]
+  fData(R) <- fd
+
+  R
+}
+
+
+dedegen <- function(R){
+  # keep only one probeset per gene; this will be the one with highest variance
+  sel <- tapply(seq_along(fData(R)$ENTREZID), fData(R)$ENTREZID, c)
+
+  sel <- tapply(seq_along(fData(R)$ENTREZID), fData(R)$ENTREZID, function(x){
+    if (length(x) == 1) x else{
+      vars <- apply(exprs(R)[x,], 1, var, na.rm = T)
+      x[which.max(vars)]
+    }
+  })
+
+  sel <- as.vector(sel)
+
+  R <- R[sel,]
+  R
+}
+
+
+to_human <- function(R, hom, taxid){
+  # restric to human and taxid
+  hom <- hom[hom$tax %in% c("9606", taxid),]
+
+  # remove disambiguities (and no pair), i.e. for each id need exactly one human and one taxid gene
+  sel <- tapply(hom$tax, hom$id, function(x){
+    length(x) == 2 & length(unique(x)) == 2
+  })
+  sel <- names(sel)[sel]
+  hom <- hom[hom$id %in% sel,]
+
+  # convert fData
+  ids <- hom$id[match(fData(R)$ENTREZID, hom$entrez)]
+  ens <- hom$entrez[match(ids, hom$id)]
+
+  fData(R)$HUMENTREZID <- ens
+  R <- R[!is.na(fData(R)$HUMENTREZID),]
+  rownames(R) <- fData(R)$HUMENTREZID
+
+  R
+}
+
+
+get_exprs <- function(dir, pData, annot, hom, taxid){
+  ab <- read_cell(dir, pData)
+  R <- rma_core(ab)
+  R <- annotate(R, annot)
+  R <- dedegen(R)
+  R <- to_human(R, hom, taxid)
+  R
+}
