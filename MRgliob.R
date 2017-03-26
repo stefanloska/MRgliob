@@ -313,6 +313,44 @@ Rat <- get_exprs(data_dir = "Rat_data",
                  taxid = "10116")
 
 
+# PCA ####
+
+e <- exprs(Rat)-rowMeans(exprs(Rat))
+s <- svd(e)
+dim(s$v)
+
+pars <- par(no.readonly = T)
+par(pty = "s")
+labs <- s$d^2
+labs <- round(labs[1:2]/sum(labs)*100, 0)
+labs <- paste(c("PC1: ", "PC2: "), labs, "%", sep = "")
+suppressWarnings(plot(s$v[, 1:2], xlab = labs[1], ylab = labs[2], pch = 16, col = as.numeric(pData(Rat)$class) + 1, labels = F, tick = F))
+abline(h = 0, v = 0, lty = 3)
+text(s$v[, 1], s$v[, 2], pData(Rat)$id, pos = 1)
+par(pars)
 
 
+pca <- function(R){
+  # svd
+  e <- sweep(exprs(R), 1, rowMeans(exprs(R)))
+  s <- svd(e)
+
+  # plot
+  pars <- par(no.readonly = T)
+  on.exit(par(pars))
+  par(pty = "s")
+  # calcuklate variance percentage
+  labs <- s$d^2
+  labs <- round(labs[1:2]/sum(labs)*100, 0)
+  labs <- paste(c("PC1: ", "PC2: "), labs, "%", sep = "")
+  # draw
+  suppressWarnings(plot(s$v[, 1:2], xlab = labs[1], ylab = labs[2], labels = F, tick = F,
+                        pch = 16, col = as.numeric(pData(Rat)$class) + 1))
+  abline(h = 0, v = 0, lty = 3)
+  text(s$v[, 1], s$v[, 2], pData(Rat)$id, pos = 1)
+
+  invisible(s)
+}
+
+pca(Rat)
 
