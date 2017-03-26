@@ -208,9 +208,10 @@ dim(R)
 
 rownames(R) <- fData(R)$HUMENTREZID
 
+
 # To functions ####
 
-read_cell <- function(dir, pData){
+read_cel <- function(dir, pData){
   # get sample meta data
   tab <- read.delim(paste(dir, pData, sep = "/"), stringsAsFactors = F)
   rownames(tab) <- tab$filename
@@ -287,7 +288,7 @@ to_human <- function(R, hom, taxid){
 
 
 get_exprs <- function(dir, pData, annot, hom, taxid){
-  ab <- read_cell(dir, pData)
+  ab <- read_cel(dir, pData)
   R <- rma_core(ab)
   R <- annotate(R, annot)
   R <- dedegen(R)
@@ -305,6 +306,7 @@ Rat <- get_exprs(dir = "Rat_data",
                  annot = ragene21sttranscriptcluster.db::ragene21sttranscriptcluster.db,
                  hom = hom,
                  taxid = "10116")
+
 
 
 
