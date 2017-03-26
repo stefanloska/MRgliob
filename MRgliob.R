@@ -294,3 +294,18 @@ get_exprs <- function(dir, pData, annot, hom, taxid){
   R <- to_human(R, hom, taxid)
   R
 }
+
+
+hom <- read.delim("homologene.data", header = F,
+                  colClasses = c("character", "character", "character", "NULL", "NULL", "NULL"),
+                  col.names = c("id", "tax", "entrez", "NULL", "NULL", "NULL"))
+
+Rat <- get_exprs(dir = "Rat_data",
+                 pData = "sample_info.txt",
+                 annot = ragene21sttranscriptcluster.db::ragene21sttranscriptcluster.db,
+                 hom = hom,
+                 taxid = "10116")
+
+
+
+
