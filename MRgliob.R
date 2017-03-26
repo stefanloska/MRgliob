@@ -213,17 +213,16 @@ rownames(R) <- fData(R)$HUMENTREZID
 
 read_cel <- function(data_dir, s_info, skip = NULL){
   # get sample meta data
-  tab <- read.delim(paste(data_dir, s_info, sep = "/"), stringsAsFactors = F)
+  tab <- read.delim(paste(data_dir, s_info, sep = "/"), colClasses = c("character", "factor", "character"))
   rownames(tab) <- tab$filename
   # check sample_info vs. cel files
   if (! setequal(tab$filename, list.celfiles(data_dir))) stop("sample info file doesn't fit available cel files")
 
   # skip what is meant to skip
-  filenames <- list.celfiles(data_dir, full.names = T)
-  filenames <- filenames[!filenames %in% paste(data_dir, skip, sep = "/")]
+  tab <- tab[!rownames(tab) %in% skip,]
 
   # get microarray signal
-  ab <- read.celfiles(filenames = filenames, phenoData = AnnotatedDataFrame(tab))
+  ab <- read.celfiles(filenames = paste(data_dir, tab$filename, sep = "/"), phenoData = AnnotatedDataFrame(tab))
   ab
 }
 
@@ -293,8 +292,8 @@ to_human <- function(R, hom, taxid){
 }
 
 
-get_exprs <- function(data_dir, s_info, annot, hom, taxid){
-  ab <- read_cel(data_dir, s_info)
+get_exprs <- function(data_dir, s_info, skip = NULL, annot, hom, taxid){
+  ab <- read_cel(data_dir, s_info, skip)
   R <- rma_core(ab)
   R <- annotate(R, annot)
   R <- dedegen(R)
