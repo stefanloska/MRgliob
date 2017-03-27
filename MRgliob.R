@@ -353,9 +353,9 @@ pca <- function(R){
   labs <- paste(c("PC1: ", "PC2: "), labs, "%", sep = "")
   # draw
   suppressWarnings(plot(s$v[, 1:2], xlab = labs[1], ylab = labs[2], labels = F, tick = F,
-                        pch = 16, col = as.numeric(pData(Rat)$class) + 1))
+                        pch = 16, col = as.numeric(pData(R)$class) + 1))
   abline(h = 0, v = 0, lty = 3)
-  text(s$v[, 1], s$v[, 2], pData(Rat)$id, pos = 1)
+  text(s$v[, 1], s$v[, 2], pData(R)$id, pos = 1)
 
   invisible(s)
 }
