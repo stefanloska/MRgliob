@@ -410,9 +410,8 @@ pd <- grep("^!Sample_characteristics|^\"ID_REF\"", tab, value = T)
 pd <- gsub("\"", "", pd)
 pd <- strsplit(pd , "\t")
 pd <- do.call(cbind, pd)
-colnames(pd) <- c("class", "id")
 pd <- pd[-1, ]
-pd <- data.frame(class = factor(pd[, "class"]), id = pd[, "id"], stringsAsFactors = F)
+pd <- data.frame(class = factor(pd[, 1]), id = pd[, 2], stringsAsFactors = F)
 rownames(pd) <- pd$id
 pd <- AnnotatedDataFrame(pd)
 
@@ -453,9 +452,8 @@ read_geo <- function(geo_file){
   pd <- gsub("\"", "", pd)
   pd <- strsplit(pd , "\t")
   pd <- do.call(cbind, pd)
-  colnames(pd) <- c("class", "id")
   pd <- pd[-1, ]
-  pd <- data.frame(class = factor(pd[, "class"]), id = pd[, "id"], stringsAsFactors = F)
+  pd <- data.frame(class = factor(pd[, 1]), id = pd[, 2], stringsAsFactors = F)
   rownames(pd) <- pd$id
   pd <- AnnotatedDataFrame(pd)
 
