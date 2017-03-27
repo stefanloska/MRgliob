@@ -332,7 +332,8 @@ par(pty = "s")
 labs <- s$d^2
 labs <- round(labs[1:2]/sum(labs)*100, 0)
 labs <- paste(c("PC1: ", "PC2: "), labs, "%", sep = "")
-suppressWarnings(plot(s$v[, 1:2], xlab = labs[1], ylab = labs[2], pch = 16, col = as.numeric(pData(Rat)$class) + 1, labels = F, tick = F))
+plot(s$v[, 1:2], xlab = labs[1], ylab = labs[2], axes = F, pch = 16, col = as.numeric(pData(Rat)$class) + 1)
+box()
 abline(h = 0, v = 0, lty = 3)
 text(s$v[, 1], s$v[, 2], pData(Rat)$id, pos = 1)
 par(pars)
@@ -352,8 +353,8 @@ pca <- function(R, lbs = pData(R)$id){
   labs <- round(labs[1:2]/sum(labs)*100, 0)
   labs <- paste(c("PC1: ", "PC2: "), labs, "%", sep = "")
   # draw
-  suppressWarnings(plot(s$v[, 1:2], xlab = labs[1], ylab = labs[2], labels = F, tick = F,
-                        pch = 16, col = as.numeric(pData(R)$class) + 1))
+  plot(s$v[, 1:2], xlab = labs[1], ylab = labs[2], axes = F, pch = 16, col = as.numeric(pData(R)$class) + 1)
+  box()
   abline(h = 0, v = 0, lty = 3)
   text(s$v[, 1], s$v[, 2], lbs, pos = 1)
 
