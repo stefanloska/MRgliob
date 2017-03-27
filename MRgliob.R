@@ -271,6 +271,13 @@ dedegen <- function(R){
 
 
 to_human <- function(R, hom, taxid){
+  # human to human just adds extra column in fData and changes rownames
+  if (taxid == "9606") {
+    fData(R)$HUMENTREZID <- fData(R)$ENTREZID
+    rownames(R) <- fData(R)$HUMENTREZID
+    return(R)
+  }
+
   # restric to human and taxid
   hom <- hom[hom$tax %in% c("9606", taxid),]
 
