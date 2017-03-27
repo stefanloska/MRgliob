@@ -209,7 +209,7 @@ dim(R)
 rownames(R) <- fData(R)$HUMENTREZID
 
 
-# To functions ####
+# Get expression functions ####
 
 read_cel <- function(data_dir, s_info, skip = NULL){
   # get sample meta data
@@ -339,6 +339,8 @@ text(s$v[, 1], s$v[, 2], pData(Rat)$id, pos = 1)
 par(pars)
 
 
+# PCA functions ####
+
 pca <- function(R, lbs = pData(R)$id){
   # svd
   e <- sweep(exprs(R), 1, rowMeans(exprs(R)))
@@ -441,7 +443,7 @@ dim(G)
 fData(G)[1:5,]
 exprs(G)[1:5,1:5]
 
-# To functions ####
+# GEO data functions ####
 read_geo <- function(geo_file){
   tab <- readLines(geo_file)
   meta <- grepl("^!|^$", tab)
@@ -478,4 +480,103 @@ build_GEO <- function(geo_file, annot, hom, taxid){
 
 G <- build_GEO("GSE12657_series_matrix.txt.gz", hgu95av2.db::hgu95av2.db, hom, "9606")
 pca(G)
+
+
+# Verhaak ####
+
+download.file("https://tcga-data.nci.nih.gov/docs/publications/gbm_exp/TCGA_unified_CORE_ClaNC840.txt", "Verhaak.tsv")
+
+# pheno data
+pd <- read.delim("Verhaak.tsv", header = F, nrow = 2)
+pd <- t(pd[, -(1:2)])
+pd <- data.frame(class = (factor(pd[,2])), id = pd[,1], stringsAsFactors = F)
+rownames(pd) <- pd$id
+
+# gene expression
+ge <- read.delim("Verhaak.tsv", header = F, skip = 2, row.names = 1, colClasses = c(NA, "NULL", rep("numeric", nrow(pd))))
+colnames(ge) <- pd$id
+ge <- data.matrix(ge)
+
+# feature data
+library(org.Hs.eg.db)
+fd <- select(org.Hs.eg.db::org.Hs.eg.db, rownames(ge), keys = rownames(ge), keytype = "SYMBOL", columns = c("ENTREZID", "GENENAME"))
+dim(fd)
+
+x <- table(fd$SYMBOL)
+table(x)
+x[x==2]
+fd[fd$SYMBOL == "TEC",]
+
+x <- table(fd$ENTREZID)
+table(x)
+sum(is.na(fd$ENTREZ))
+
+
+fd <- select(org.Hs.eg.db::org.Hs.eg.db, rownames(ge), keys = rownames(ge), keytype = "ALIAS", columns = c("ENTREZID", "SYMBOL", "GENENAME"))
+dim(fd)
+sum(is.na(fd$ENTREZ))
+x <- table(fd$ALIAS)
+table(x)
+x <- table(fd$ENTREZID)
+table(x)
+
+# pick up gene symbols/aliases that can be translated to entrez id unambigiously
+da <- table(fd$ALIAS)
+da <- names(da[da == 1])
+de <- table(fd$ENTREZID)
+de <- names(de[de == 1])
+
+fd <- fd[fd$ALIAS %in% da & fd$ENTREZID %in% de,]
+fd$HUMENTREZID <- fd$ENTREZID
+rownames(fd) <- fd$HUMENTREZID
+
+# limit gene expression
+all(fd$ALIAS %in% rownames(ge))
+ge <- ge[fd$ALIAS,]
+rownames(ge) <- rownames(fd)
+
+V <- ExpressionSet(ge, AnnotatedDataFrame(pd), AnnotatedDataFrame(fd))
+
+
+# Verhaak clean code ####
+
+download.file("https://tcga-data.nci.nih.gov/docs/publications/gbm_exp/TCGA_unified_CORE_ClaNC840.txt", "Verhaak.tsv")
+
+# pheno data
+pd <- read.delim("Verhaak.tsv", header = F, nrow = 2)
+pd <- t(pd[, -(1:2)])
+pd <- data.frame(class = (factor(pd[,2])), id = pd[,1], stringsAsFactors = F)
+rownames(pd) <- pd$id
+
+# gene expression
+ge <- read.delim("Verhaak.tsv", header = F, skip = 2, row.names = 1, colClasses = c(NA, "NULL", rep("numeric", nrow(pd))))
+colnames(ge) <- pd$id
+ge <- data.matrix(ge)
+
+# feature data
+fd <- select(org.Hs.eg.db::org.Hs.eg.db, rownames(ge), keys = rownames(ge), keytype = "ALIAS", columns = c("ENTREZID", "SYMBOL", "GENENAME"))
+
+# pick up gene symbols/aliases that can be translated to entrez id unambigiously
+da <- table(fd$ALIAS)
+da <- names(da[da == 1]) # disambigous aliases
+de <- table(fd$ENTREZID)
+de <- names(de[de == 1]) # disambigous entrez ids
+fd <- fd[fd$ALIAS %in% da & fd$ENTREZID %in% de,]
+
+fd$HUMENTREZID <- fd$ENTREZID
+rownames(fd) <- fd$HUMENTREZID
+
+# limit gene expression to new gene set
+all(fd$ALIAS %in% rownames(ge))
+ge <- ge[fd$ALIAS,]
+rownames(ge) <- rownames(fd)
+
+# create eSet
+V <- ExpressionSet(ge, AnnotatedDataFrame(pd), AnnotatedDataFrame(fd))
+
+
+
+
+
+
 
