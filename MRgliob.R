@@ -209,7 +209,7 @@ dim(R)
 rownames(R) <- fData(R)$HUMENTREZID
 
 
-# Get expression functions ####
+# FUNCTIONS: Get expression ####
 
 read_cel <- function(data_dir, s_info, skip = NULL){
   # get sample meta data
@@ -339,7 +339,7 @@ text(s$v[, 1], s$v[, 2], pData(Rat)$id, pos = 1)
 par(pars)
 
 
-# PCA functions ####
+# FUNCTIONS: PCA ####
 
 pca <- function(R, lbs = pData(R)$id){
   # svd
@@ -443,7 +443,7 @@ dim(G)
 fData(G)[1:5,]
 exprs(G)[1:5,1:5]
 
-# GEO data functions ####
+# FUNCTIONS: GEO data ####
 read_geo <- function(geo_file){
   tab <- readLines(geo_file)
   meta <- grepl("^!|^$", tab)
@@ -538,7 +538,7 @@ rownames(ge) <- rownames(fd)
 V <- ExpressionSet(ge, AnnotatedDataFrame(pd), AnnotatedDataFrame(fd))
 
 
-# Verhaak clean code ####
+# CLEAN CODE: Verhaak ####
 
 download.file("https://tcga-data.nci.nih.gov/docs/publications/gbm_exp/TCGA_unified_CORE_ClaNC840.txt", "Verhaak.tsv")
 
