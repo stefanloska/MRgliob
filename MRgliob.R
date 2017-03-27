@@ -481,5 +481,6 @@ build_GEO <- function(geo_file, annot, hom, taxid){
   G
 }
 
-build_GEO("GSE12657_series_matrix.txt.gz", hgu95av2.db::hgu95av2.db, hom, "9606"){
+G <- build_GEO("GSE12657_series_matrix.txt.gz", hgu95av2.db::hgu95av2.db, hom, "9606")
+pca(G)
 
