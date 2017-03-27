@@ -314,7 +314,7 @@ hom <- read.delim("homologene.data", header = F,
                   colClasses = c("character", "character", "character", "NULL", "NULL", "NULL"),
                   col.names = c("id", "tax", "entrez", "NULL", "NULL", "NULL"))
 
-Rat <- get_exprs(data_dir = "Rat_data",
+R <- get_exprs(data_dir = "Rat_data",
                  s_info = "sample_info.txt",
                  annot = ragene21sttranscriptcluster.db::ragene21sttranscriptcluster.db,
                  hom = hom,
@@ -323,7 +323,7 @@ Rat <- get_exprs(data_dir = "Rat_data",
 
 # PCA ####
 
-e <- exprs(Rat)-rowMeans(exprs(Rat))
+e <- exprs(R)-rowMeans(exprs(R))
 s <- svd(e)
 dim(s$v)
 
@@ -332,10 +332,10 @@ par(pty = "s")
 labs <- s$d^2
 labs <- round(labs[1:2]/sum(labs)*100, 0)
 labs <- paste(c("PC1: ", "PC2: "), labs, "%", sep = "")
-plot(s$v[, 1:2], xlab = labs[1], ylab = labs[2], axes = F, pch = 16, col = as.numeric(pData(Rat)$class) + 1)
+plot(s$v[, 1:2], xlab = labs[1], ylab = labs[2], axes = F, pch = 16, col = as.numeric(pData(R)$class) + 1)
 box()
 abline(h = 0, v = 0, lty = 3)
-text(s$v[, 1], s$v[, 2], pData(Rat)$id, pos = 1)
+text(s$v[, 1], s$v[, 2], pData(R)$id, pos = 1)
 par(pars)
 
 
@@ -363,7 +363,7 @@ pca <- function(R, lbs = pData(R)$id){
   invisible(s)
 }
 
-pca(Rat)
+pca(R)
 
 
 # GEO data ####
