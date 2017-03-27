@@ -362,3 +362,124 @@ pca <- function(R){
 
 pca(Rat)
 
+
+# GEO data ####
+
+download.file("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE12nnn/GSE12657/matrix/GSE12657_series_matrix.txt.gz",
+              "GSE12657_series_matrix.txt.gz")
+
+download.file("https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE12657&format=file",
+              "GSE12657_RAW.tar")
+
+
+# ad hoc way ####
+pd <- read.delim("GSE12657_series_matrix.txt.gz", row.names = 1, header = F, skip = 35, nrows = 1)
+pd <- rbind(pd, read.delim("GSE12657_series_matrix.txt.gz",row.names = 1, header = F, skip = 56, nrows = 1))
+pd <- data.frame(t(pd), stringsAsFactors = F)
+colnames(pd) <- c("class", "id")
+rownames(pd) <- pd$id
+pd$class <- factor(pd$class)
+pd <- AnnotatedDataFrame(pd)
+
+ge <- read.delim("GSE12657_series_matrix.txt.gz", row.names = 1, skip = 56, nrow = 12625)
+ge <- data.matrix(ge)
+
+
+# more like parsing way ####
+tab <- readLines("GSE12657_series_matrix.txt.gz")
+meta <- grepl("^!|^$", tab)
+
+# long way to get pheno data - advantage: extract all fields, disadv: id taken from !Sample_geo_accession instead "ID_REF"
+pd <- tab[meta]
+pd <- pd[-(1 : grep("^$", pd))]
+pd <- pd[seq_len(length(pd) - 2)]
+pd <- gsub("\"", "", pd)
+pd <- sub("^!", "", pd)
+pd <- strsplit(pd , "\t")
+pd <- do.call(cbind, pd)
+colnames(pd) <- pd[1, ]
+pd <- pd[-1, ]
+pd <- data.frame(pd, stringsAsFactors = F)
+pd <- data.frame(class = factor(pd$Sample_characteristics_ch1), id = pd$Sample_geo_accession, stringsAsFactors = F)
+rownames(pd) <- pd$id
+pd <- AnnotatedDataFrame(pd)
+
+
+# short way to get pheno data - just get what we need
+pd <- grep("^!Sample_characteristics|^\"ID_REF\"", tab, value = T)
+pd <- gsub("\"", "", pd)
+pd <- strsplit(pd , "\t")
+pd <- do.call(cbind, pd)
+colnames(pd) <- c("class", "id")
+pd <- pd[-1, ]
+pd <- data.frame(class = factor(pd[, "class"]), id = pd[, "id"], stringsAsFactors = F)
+rownames(pd) <- pd$id
+pd <- AnnotatedDataFrame(pd)
+
+ge <- tab[!meta]
+ge <- gsub("\"", "", ge)
+ge <- strsplit(ge , "\t")
+ge <- do.call(rbind, ge)
+colnames(ge) <- ge[1, ]
+rownames(ge) <- ge[, 1]
+ge <- ge[-1, -1]
+mode(ge) <- "numeric"
+
+# test the annotation library
+library(hgu95av2.db)
+fd <- select(hgu95av2.db, keys = c("930_at", "931_at"), keytype = "PROBEID", columns = c("ENTREZID", "SYMBOL", "GENENAME"))
+
+# build eSet object
+G <- ExpressionSet(ge, pd)
+
+# add annotations
+G <- annotate(G, hgu95av2.db::hgu95av2.db)
+G <- dedegen(G)
+dim(G)
+hom <- read.delim("homologene.data", header = F,
+                  colClasses = c("character", "character", "character", "NULL", "NULL", "NULL"),
+                  col.names = c("id", "tax", "entrez", "NULL", "NULL", "NULL"))
+G <- to_human(G, hom, "9606")
+dim(G)
+fData(G)[1:5,]
+exprs(G)[1:5,1:5]
+
+# To functions ####
+read_geo <- function(geo_file){
+  tab <- readLines(geo_file)
+  meta <- grepl("^!|^$", tab)
+
+  pd <- grep("^!Sample_characteristics|^\"ID_REF\"", tab, value = T)
+  pd <- gsub("\"", "", pd)
+  pd <- strsplit(pd , "\t")
+  pd <- do.call(cbind, pd)
+  colnames(pd) <- c("class", "id")
+  pd <- pd[-1, ]
+  pd <- data.frame(class = factor(pd[, "class"]), id = pd[, "id"], stringsAsFactors = F)
+  rownames(pd) <- pd$id
+  pd <- AnnotatedDataFrame(pd)
+
+  ge <- tab[!meta]
+  ge <- gsub("\"", "", ge)
+  ge <- strsplit(ge , "\t")
+  ge <- do.call(rbind, ge)
+  colnames(ge) <- ge[1, ]
+  rownames(ge) <- ge[, 1]
+  ge <- ge[-1, -1]
+  mode(ge) <- "numeric"
+
+  G <- ExpressionSet(ge, pd)
+
+  G
+}
+
+build_GEO <- function(geo_file, annot, hom, taxid){
+  G <- read_geo(geo_file)
+  G <- annotate(G, annot)
+  G <- dedegen(G)
+  G <- to_human(G, hom, taxid)
+  G
+}
+
+build_GEO("GSE12657_series_matrix.txt.gz", hgu95av2.db::hgu95av2.db, hom, "9606"){
+
