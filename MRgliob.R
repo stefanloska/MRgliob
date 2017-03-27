@@ -380,7 +380,6 @@ pd <- data.frame(t(pd), stringsAsFactors = F)
 colnames(pd) <- c("class", "id")
 rownames(pd) <- pd$id
 pd$class <- factor(pd$class)
-pd <- AnnotatedDataFrame(pd)
 
 ge <- read.delim("GSE12657_series_matrix.txt.gz", row.names = 1, skip = 56, nrow = 12625)
 ge <- data.matrix(ge)
@@ -403,7 +402,6 @@ pd <- pd[-1, ]
 pd <- data.frame(pd, stringsAsFactors = F)
 pd <- data.frame(class = factor(pd$Sample_characteristics_ch1), id = pd$Sample_geo_accession, stringsAsFactors = F)
 rownames(pd) <- pd$id
-pd <- AnnotatedDataFrame(pd)
 
 
 # short way to get pheno data - just get what we need
@@ -414,7 +412,6 @@ pd <- do.call(cbind, pd)
 pd <- pd[-1, ]
 pd <- data.frame(class = factor(pd[, 1]), id = pd[, 2], stringsAsFactors = F)
 rownames(pd) <- pd$id
-pd <- AnnotatedDataFrame(pd)
 
 ge <- tab[!meta]
 ge <- gsub("\"", "", ge)
@@ -430,7 +427,7 @@ library(hgu95av2.db)
 fd <- select(hgu95av2.db, keys = c("930_at", "931_at"), keytype = "PROBEID", columns = c("ENTREZID", "SYMBOL", "GENENAME"))
 
 # build eSet object
-G <- ExpressionSet(ge, pd)
+G <- ExpressionSet(ge, AnnotatedDataFrame(pd))
 
 # add annotations
 G <- annotate(G, hgu95av2.db::hgu95av2.db)
@@ -456,7 +453,6 @@ read_geo <- function(geo_file){
   pd <- pd[-1, ]
   pd <- data.frame(class = factor(pd[, 1]), id = pd[, 2], stringsAsFactors = F)
   rownames(pd) <- pd$id
-  pd <- AnnotatedDataFrame(pd)
 
   ge <- tab[!meta]
   ge <- gsub("\"", "", ge)
@@ -467,7 +463,7 @@ read_geo <- function(geo_file){
   ge <- ge[-1, -1]
   mode(ge) <- "numeric"
 
-  G <- ExpressionSet(ge, pd)
+  G <- ExpressionSet(ge, AnnotatedDataFrame(pd))
 
   G
 }
