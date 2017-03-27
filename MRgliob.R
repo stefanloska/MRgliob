@@ -484,7 +484,7 @@ download.file("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE12nnn/GSE12657/matrix/GS
 
 G <- build_GEO("GSE12657_series_matrix.txt.gz", hgu95av2.db::hgu95av2.db, hom, "9606")
 
-pca(G)
+pca(G, lbs = pData(G)$class)
 
 
 # Verhaak ####
@@ -543,42 +543,46 @@ rownames(ge) <- rownames(fd)
 V <- ExpressionSet(ge, AnnotatedDataFrame(pd), AnnotatedDataFrame(fd))
 
 
-# CLEAN CODE: Verhaak ####
+# FUNCTIONS: Verhaak ####
 
 download.file("https://tcga-data.nci.nih.gov/docs/publications/gbm_exp/TCGA_unified_CORE_ClaNC840.txt", "Verhaak.tsv")
 
-# pheno data
-pd <- read.delim("Verhaak.tsv", header = F, nrow = 2)
-pd <- t(pd[, -(1:2)])
-pd <- data.frame(class = (factor(pd[,2])), id = pd[,1], stringsAsFactors = F)
-rownames(pd) <- pd$id
+read_ver <- function(ver_file){
+  # pheno data
+  pd <- read.delim(ver_file, header = F, nrow = 2)
+  pd <- t(pd[, -(1:2)])
+  pd <- data.frame(class = (factor(pd[,2])), id = pd[,1], stringsAsFactors = F)
+  rownames(pd) <- pd$id
 
-# gene expression
-ge <- read.delim("Verhaak.tsv", header = F, skip = 2, row.names = 1, colClasses = c(NA, "NULL", rep("numeric", nrow(pd))))
-colnames(ge) <- pd$id
-ge <- data.matrix(ge)
+  # gene expression
+  ge <- read.delim("Verhaak.tsv", header = F, skip = 2, row.names = 1, colClasses = c(NA, "NULL", rep("numeric", nrow(pd))))
+  colnames(ge) <- pd$id
+  ge <- data.matrix(ge)
 
-# feature data
-fd <- select(org.Hs.eg.db::org.Hs.eg.db, rownames(ge), keys = rownames(ge), keytype = "ALIAS", columns = c("ENTREZID", "SYMBOL", "GENENAME"))
+  # feature data
+  fd <- select(org.Hs.eg.db::org.Hs.eg.db, rownames(ge), keys = rownames(ge), keytype = "ALIAS", columns = c("ENTREZID", "SYMBOL", "GENENAME"))
 
-# pick up gene symbols/aliases that can be translated to entrez id unambigiously
-da <- table(fd$ALIAS)
-da <- names(da[da == 1]) # disambigous aliases
-de <- table(fd$ENTREZID)
-de <- names(de[de == 1]) # disambigous entrez ids
-fd <- fd[fd$ALIAS %in% da & fd$ENTREZID %in% de,]
+  # pick up gene symbols/aliases that can be translated to entrez id unambigiously
+  da <- table(fd$ALIAS)
+  da <- names(da[da == 1]) # disambigous aliases
+  de <- table(fd$ENTREZID)
+  de <- names(de[de == 1]) # disambigous entrez ids
+  fd <- fd[fd$ALIAS %in% da & fd$ENTREZID %in% de,]
 
-fd$HUMENTREZID <- fd$ENTREZID
-rownames(fd) <- fd$HUMENTREZID
+  fd$HUMENTREZID <- fd$ENTREZID
+  rownames(fd) <- fd$HUMENTREZID
 
-# limit gene expression to new gene set
-all(fd$ALIAS %in% rownames(ge))
-ge <- ge[fd$ALIAS,]
-rownames(ge) <- rownames(fd)
+  # limit gene expression to new gene set
+  all(fd$ALIAS %in% rownames(ge))
+  ge <- ge[fd$ALIAS,]
+  rownames(ge) <- rownames(fd)
 
-# create eSet
-V <- ExpressionSet(ge, AnnotatedDataFrame(pd), AnnotatedDataFrame(fd))
+  # create eSet
+  V <- ExpressionSet(ge, AnnotatedDataFrame(pd), AnnotatedDataFrame(fd))
+  V
+}
 
+V <- read_ver("Verhaak.tsv")
 
 
 
