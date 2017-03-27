@@ -309,6 +309,7 @@ get_exprs <- function(data_dir, s_info, skip = NULL, annot, hom, taxid){
   R
 }
 
+download.file("ftp://ftp.ncbi.nih.gov/pub/HomoloGene/build68/homologene.data", "homologene.data")
 
 hom <- read.delim("homologene.data", header = F,
                   colClasses = c("character", "character", "character", "NULL", "NULL", "NULL"),
@@ -478,7 +479,11 @@ build_GEO <- function(geo_file, annot, hom, taxid){
   G
 }
 
+download.file("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE12nnn/GSE12657/matrix/GSE12657_series_matrix.txt.gz",
+              "GSE12657_series_matrix.txt.gz")
+
 G <- build_GEO("GSE12657_series_matrix.txt.gz", hgu95av2.db::hgu95av2.db, hom, "9606")
+
 pca(G)
 
 
