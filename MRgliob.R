@@ -386,6 +386,7 @@ pd$class <- factor(pd$class)
 
 ge <- read.delim("GSE12657_series_matrix.txt.gz", row.names = 1, skip = 56, nrow = 12625)
 ge <- data.matrix(ge)
+ge <- log2(ge)
 
 
 # more like parsing way ####
@@ -424,6 +425,7 @@ colnames(ge) <- ge[1, ]
 rownames(ge) <- ge[, 1]
 ge <- ge[-1, -1]
 mode(ge) <- "numeric"
+ge <- log2(ge)
 
 # test the annotation library
 library(hgu95av2.db)
@@ -465,6 +467,7 @@ read_geo <- function(geo_file){
   rownames(ge) <- ge[, 1]
   ge <- ge[-1, -1]
   mode(ge) <- "numeric"
+  ge <- log2(ge)
 
   G <- ExpressionSet(ge, AnnotatedDataFrame(pd))
 
