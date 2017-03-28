@@ -629,15 +629,14 @@ get_DE <- function(R, ctrl = "CTRL"){
   R[, pData(R)$class != ctrl]
 }
 
-sp_foot <- function(...){
+clust <- function(..., fun = function(M) dist(t(M))){
   eData <- list(...)
 
   sel <- Reduce(intersect, lapply(eData, rownames), rownames(eData[[1]]))
   eData <- lapply(eData, function(x){x[sel,]})
   M <- do.call(cbind, lapply(eData, exprs))
 
-  M <- apply(M, 2, rank)
-  d <- dist(t(M), "manhattan")
+  d <- fun(M)
 
   hc <- hclust(d)
   plot(hc, labels = unlist(sapply(eData, function(x){pData(x)$class})))
@@ -663,5 +662,25 @@ Rat_DE <- get_DE(Rat)
 Mouse_DE <- get_DE(Mouse)
 G_DE <- get_DE(G, ctrl = "Control")
 
-sp_foot(G_DE, Rat_DE, Mouse_DE)
+clust(G_DE, Rat_DE, Mouse_DE)
+
+clust(G_DE, Rat_DE, Mouse_DE, fun = function(M) as.dist(1-cor(M)))
+
+clust(G_DE, Rat_DE, Mouse_DE, fun = function(M) as.dist(1-cor(M, method = "spearman")))
+
+clust(G_DE, Rat_DE, Mouse_DE, fun = function(M) dist(t(apply(M, 2, rank)), "manhattan"))
+
+
+clust(G, Rat, Mouse)
+
+clust(G, Rat, Mouse, fun = function(M) as.dist(1-cor(M)))
+
+clust(G, Rat, Mouse, fun = function(M) as.dist(1-cor(M, method = "spearman")))
+
+clust(G, Rat, Mouse, fun = function(M) dist(t(apply(M, 2, rank)), "manhattan"))
+
+
+
+
+
 
