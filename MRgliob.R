@@ -588,7 +588,80 @@ read_ver <- function(ver_file){
 V <- read_ver("Verhaak.tsv")
 
 
+# DE clustering ####
+
+get_DE <- function(R, ctrl = "CTRL"){
+  base <- rowMeans(exprs(R)[, pData(R)$class == ctrl])
+  exprs(R) <- sweep(exprs(R), 1, base)
+  R[, pData(R)$class != ctrl]
+}
+
+R_DE <- get_DE(R)
+G_DE <- get_DE(G, ctrl = "Control")
+
+
+eData <- list(G_DE, R_DE)
+dim(G_DE)
+dim(R_DE)
+
+sel <- Reduce(intersect, lapply(eData, rownames), rownames(eData[[1]]))
+length(sel)
+eData <- lapply(eData, function(x){x[sel,]})
+dim(eData[[1]])
+dim(eData[[2]])
+
+M <- do.call(cbind, lapply(eData, exprs))
+dim(M)
+
+d <- dist(t(apply(M, 2, rank)), "manhattan")
+plot(hclust(d), labels = unlist(sapply(eData, function(x){pData(x)$class})))
+
+d <- as.dist(1-cor(M))
+plot(hclust(d), labels = unlist(sapply(eData, function(x){pData(x)$class})))
 
 
 
+# FUNCTIONS: DE clustering ####
+
+get_DE <- function(R, ctrl = "CTRL"){
+  base <- rowMeans(exprs(R)[, pData(R)$class == ctrl])
+  exprs(R) <- sweep(exprs(R), 1, base)
+  R[, pData(R)$class != ctrl]
+}
+
+sp_foot <- function(...){
+  eData <- list(...)
+
+  sel <- Reduce(intersect, lapply(eData, rownames), rownames(eData[[1]]))
+  eData <- lapply(eData, function(x){x[sel,]})
+  M <- do.call(cbind, lapply(eData, exprs))
+
+  M <- apply(M, 2, rank)
+  d <- dist(t(M), "manhattan")
+
+  hc <- hclust(d)
+  plot(hc, labels = unlist(sapply(eData, function(x){pData(x)$class})))
+
+  invisible(hc)
+}
+
+
+Rat <- get_exprs(data_dir = "Rat_data",
+                 s_info = "sample_info.txt",
+                 annot = ragene21sttranscriptcluster.db::ragene21sttranscriptcluster.db,
+                 hom = hom,
+                 taxid = "10116")
+
+Mouse <- get_exprs(data_dir = "Mouse_data",
+                   s_info = "sample_info.txt",
+                   annot = mogene21sttranscriptcluster.db::mogene21sttranscriptcluster.db,
+                   hom = hom,
+                   taxid = "10090")
+
+
+Rat_DE <- get_DE(Rat)
+Mouse_DE <- get_DE(Mouse)
+G_DE <- get_DE(G, ctrl = "Control")
+
+sp_foot(G_DE, Rat_DE, Mouse_DE)
 
