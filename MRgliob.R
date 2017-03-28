@@ -604,7 +604,9 @@ eData <- list(G_DE, R_DE)
 dim(G_DE)
 dim(R_DE)
 
-sel <- Reduce(intersect, lapply(eData, rownames), rownames(eData[[1]]))
+sel = rownames(eData[[1]])
+# sel = c("10", "100", "1000")
+sel <- Reduce(intersect, lapply(eData, rownames), sel)
 length(sel)
 eData <- lapply(eData, function(x){x[sel,]})
 dim(eData[[1]])
@@ -629,10 +631,10 @@ get_DE <- function(R, ctrl = "CTRL"){
   R[, pData(R)$class != ctrl]
 }
 
-clust <- function(..., fun = function(M) dist(t(M))){
+clust <- function(..., fun = function(M) dist(t(M)), sel = rownames(eData[[1]])){
   eData <- list(...)
 
-  sel <- Reduce(intersect, lapply(eData, rownames), rownames(eData[[1]]))
+  sel <- Reduce(intersect, lapply(eData, rownames), sel)
   eData <- lapply(eData, function(x){x[sel,]})
   M <- do.call(cbind, lapply(eData, exprs))
 
