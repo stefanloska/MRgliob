@@ -654,6 +654,17 @@ get_DE <- function(R, ctrl = "CTRL"){
   R[, pData(R)$class != ctrl]
 }
 
+z_score <- function(R){
+  exprs(R) <- sweep(exprs(R), 1, rowMeans(exprs(R)))
+  exprs(R) <- sweep(exprs(R), 1 , apply(exprs(R), 1, sd), "/")
+  R
+}
+
+med_norm <-  function(R){
+  exprs(R) <- sweep(exprs(R), 1 , apply(exprs(R), 1, median))
+  R
+}
+
 clust <- function(..., fun = function(M) dist(t(M)), sel = rownames(eData[[1]])){
   eData <- list(...)
 
