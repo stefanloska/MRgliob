@@ -651,7 +651,7 @@ plot(hclust(d), labels = unlist(sapply(eData, function(x){pData(x)$class})))
 get_DE <- function(R, ctrl = "CTRL"){
   base <- rowMeans(exprs(R)[, pData(R)$class == ctrl])
   exprs(R) <- sweep(exprs(R), 1, base)
-  R[, pData(R)$class != ctrl]
+  R#[, pData(R)$class != ctrl]
 }
 
 z_score <- function(R){
