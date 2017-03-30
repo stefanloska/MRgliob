@@ -799,3 +799,7 @@ clust(centr(V), Rat, Mouse, fun = function(M) as.dist(1-cor(M)))
 clust(centr(V), med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)))
 
 clust(V_ce, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)))
+
+clust(V_ce, med_norm(Rat), fun = function(M) as.dist(1-cor(M)))
+
+clust(V_ce, med_norm(Mouse), fun = function(M) as.dist(1-cor(M)))
