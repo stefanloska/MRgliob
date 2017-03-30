@@ -554,16 +554,15 @@ sel <- sapply(levels(pData(V)$class), function (x){
 
 V_ce <- V[,sel]
 
+pData(V_ce) <- pData(V_ce)[, colnames(pData(V_ce)) != "id", drop = F]
+
 exprs(V_ce) <- sapply(levels(pData(V)$class), function (x){
   ge <- exprs(V)[, pData(V)$class == x]
   rowMeans(ge)
 })
 
 
-exprs(Rat) <- sweep(exprs(Rat), 1, apply(exprs(Rat), 1, median))
-exprs(Mouse) <- sweep(exprs(Mouse), 1, apply(exprs(Mouse), 1, median))
 
-clust(V_ce, Rat, Mouse, fun = function(M) as.dist(1-cor(M)))
 
 
 # FUNCTIONS: Verhaak ####
@@ -604,6 +603,24 @@ read_ver <- function(ver_file){
   V <- ExpressionSet(ge, AnnotatedDataFrame(pd), AnnotatedDataFrame(fd))
   V
 }
+
+centr <- function(V){
+  sel <- sapply(levels(pData(V)$class), function (x){
+    which(pData(V)$class == x)[1]
+  })
+
+  V_ce <- V[,sel]
+
+  pData(V_ce) <- pData(V_ce)[, colnames(pData(V_ce)) != "id", drop = F]
+
+  exprs(V_ce) <- sapply(levels(pData(V)$class), function (x){
+    ge <- exprs(V)[, pData(V)$class == x]
+    rowMeans(ge)
+  })
+
+  V_ce
+}
+
 
 V <- read_ver("Verhaak.tsv")
 
@@ -747,3 +764,4 @@ clust(V, Rat, Mouse, fun = function(M) as.dist(1-cor(M)))
 clust(V, Rat, Mouse, fun = function(M) dist(t(apply(M, 2, rank)), "manhattan"))
 
 
+clust(V_ce, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)))
