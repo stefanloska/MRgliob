@@ -546,6 +546,26 @@ rownames(ge) <- rownames(fd)
 V <- ExpressionSet(ge, AnnotatedDataFrame(pd), AnnotatedDataFrame(fd))
 
 
+# Make centroids for Verhaak ####
+
+sel <- sapply(levels(pData(V)$class), function (x){
+  which(pData(V)$class == x)[1]
+})
+
+V_ce <- V[,sel]
+
+exprs(V_ce) <- sapply(levels(pData(V)$class), function (x){
+  ge <- exprs(V)[, pData(V)$class == x]
+  rowMeans(ge)
+})
+
+
+exprs(Rat) <- sweep(exprs(Rat), 1, apply(exprs(Rat), 1, median))
+exprs(Mouse) <- sweep(exprs(Mouse), 1, apply(exprs(Mouse), 1, median))
+
+clust(V_ce, Rat, Mouse, fun = function(M) as.dist(1-cor(M)))
+
+
 # FUNCTIONS: Verhaak ####
 
 download.file("https://tcga-data.nci.nih.gov/docs/publications/gbm_exp/TCGA_unified_CORE_ClaNC840.txt", "Verhaak.tsv")
@@ -727,21 +747,3 @@ clust(V, Rat, Mouse, fun = function(M) as.dist(1-cor(M)))
 clust(V, Rat, Mouse, fun = function(M) dist(t(apply(M, 2, rank)), "manhattan"))
 
 
-# Make centroids for Verhaak ####
-
-sel <- sapply(levels(pData(V)$class), function (x){
-  which(pData(V)$class == x)[1]
-})
-
-V_ce <- V[,sel]
-
-exprs(V_ce) <- sapply(levels(pData(V)$class), function (x){
-  ge <- exprs(V)[, pData(V)$class == x]
-  rowMeans(ge)
-})
-
-
-exprs(Rat) <- sweep(exprs(Rat), 1, apply(exprs(Rat), 1, median))
-exprs(Mouse) <- sweep(exprs(Mouse), 1, apply(exprs(Mouse), 1, median))
-
-clust(V_ce, Rat, Mouse, fun = function(M) as.dist(1-cor(M)))
