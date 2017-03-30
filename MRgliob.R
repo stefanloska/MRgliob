@@ -588,6 +588,29 @@ read_ver <- function(ver_file){
 V <- read_ver("Verhaak.tsv")
 
 
+# Differential expression ####
+
+# construct the model
+ctrl <- "CTRL"
+class <- factor(pData(R)$class)
+class <- relevel(class, ctrl)
+M <- model.matrix(~ class)
+colnames(M)[1] <- "ctrl"
+colnames(M) <- gsub("class", "", colnames(M))
+
+# fit
+library(limma)
+fit <- lmFit(exprs(R), M)
+fit <- eBayes(fit)
+
+Fc <- fit$coefficients
+p <- fit$p.value
+q <- qvalue::qvalue(p)$qvalues
+
+colSums(Fc > Fc_th & q < q_th)
+
+sel <- rownames(R)[abs(Fc[,"C6"]) > 1 & q[,"C6"] < 0.05]
+
 # DE clustering ####
 
 get_DE <- function(R, ctrl = "CTRL"){
