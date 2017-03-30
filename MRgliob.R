@@ -695,6 +695,8 @@ clust(G_DE, Rat_DE, Mouse_DE, fun = function(M) as.dist(1-cor(M, method = "spear
 
 clust(G_DE, Rat_DE, Mouse_DE, fun = function(M) dist(t(apply(M, 2, rank)), "manhattan"))
 
+clust(G_DE, Rat_DE, Mouse_DE, fun = function(M) dist(t(apply(M, 2, rank)), "manhattan"), sel = sel)
+
 
 clust(G, Rat, Mouse)
 
@@ -704,8 +706,31 @@ clust(G, Rat, Mouse, fun = function(M) as.dist(1-cor(M, method = "spearman")))
 
 clust(G, Rat, Mouse, fun = function(M) dist(t(apply(M, 2, rank)), "manhattan"))
 
+clust(G, Rat, Mouse, fun = function(M) dist(t(apply(M, 2, rank)), "manhattan"), sel = sel)
 
 
+clust(V, Rat, Mouse)
+
+clust(V, Rat, Mouse, fun = function(M) as.dist(1-cor(M)))
+
+clust(V, Rat, Mouse, fun = function(M) dist(t(apply(M, 2, rank)), "manhattan"))
 
 
+# Make centroids for Verhaak ####
 
+sel <- sapply(levels(pData(V)$class), function (x){
+  which(pData(V)$class == x)[1]
+})
+
+V_ce <- V[,sel]
+
+exprs(V_ce) <- sapply(levels(pData(V)$class), function (x){
+  ge <- exprs(V)[, pData(V)$class == x]
+  rowMeans(ge)
+})
+
+
+exprs(Rat) <- sweep(exprs(Rat), 1, apply(exprs(Rat), 1, median))
+exprs(Mouse) <- sweep(exprs(Mouse), 1, apply(exprs(Mouse), 1, median))
+
+clust(V_ce, Rat, Mouse, fun = function(M) as.dist(1-cor(M)))
