@@ -553,7 +553,6 @@ sel <- sapply(levels(pData(V)$class), function (x){
 })
 
 V_ce <- V[,sel]
-
 pData(V_ce) <- pData(V_ce)[, colnames(pData(V_ce)) != "id", drop = F]
 
 exprs(V_ce) <- sapply(levels(pData(V)$class), function (x){
@@ -561,13 +560,24 @@ exprs(V_ce) <- sapply(levels(pData(V)$class), function (x){
   rowMeans(ge)
 })
 
+exprs(V_ce) <- sapply(levels(pData(V)$class), function (x){
+  ge <- sweep(exprs(V), 1, apply(exprs(V), 1, median))[, pData(V)$class == x]
+  rowMeans(ge)
+})
 
+V_ce <- V_ce[, c("Proneural", "Neural", "Classical", "Mesenchymal")]
+View(exprs(V_ce))
 
+# from ready data:
+V_ce_ <- V_ce
+download.file("https://tcga-data.nci.nih.gov/docs/publications/gbm_exp/ClaNC840_centroids.xls", "ClaNC840_centroids.xls")
+ces <- gdata::read.xls("ClaNC840_centroids.xls", header = T, row.names = 1,  stringsAsFactors = F, skip = 2, colClasses = c(NA, "NULL", rep(NA, 4)))
+ces <- ces[fData(V)$ALIAS, ]
+rownames(ces) <- rownames(fData(V))
+exprs(V_ce_) <- data.matrix(ces)
 
 
 # FUNCTIONS: Verhaak ####
-
-download.file("https://tcga-data.nci.nih.gov/docs/publications/gbm_exp/TCGA_unified_CORE_ClaNC840.txt", "Verhaak.tsv")
 
 read_ver <- function(ver_file){
   # pheno data
@@ -621,8 +631,31 @@ centr <- function(V){
   V_ce
 }
 
+get_ces <- function(V, ces_file){
+  sel <- sapply(levels(pData(V)$class), function (x){
+    which(pData(V)$class == x)[1]
+  })
+
+  V_ce <- V[,sel]
+  pData(V_ce) <- pData(V_ce)[, colnames(pData(V_ce)) != "id", drop = F]
+
+  ces <- gdata::read.xls(ces_file, header = T, row.names = 1,  stringsAsFactors = F, skip = 2, colClasses = c(NA, "NULL", rep(NA, 4)))
+  ces <- ces[fData(V)$ALIAS, ]
+  rownames(ces) <- rownames(fData(V))
+  exprs(V_ce) <- data.matrix(ces)
+
+  V_ce
+}
+
+download.file("https://tcga-data.nci.nih.gov/docs/publications/gbm_exp/TCGA_unified_CORE_ClaNC840.txt", "Verhaak.tsv")
 
 V <- read_ver("Verhaak.tsv")
+
+V_ce <- centr(V)
+
+download.file("https://tcga-data.nci.nih.gov/docs/publications/gbm_exp/ClaNC840_centroids.xls", "ClaNC840_centroids.xls")
+
+V_ce <- get_ces(V, "ClaNC840_centroids.xls")
 
 
 # Differential expression ####
@@ -743,8 +776,6 @@ clust(G_DE, Rat_DE, Mouse_DE, fun = function(M) as.dist(1-cor(M, method = "spear
 
 clust(G_DE, Rat_DE, Mouse_DE, fun = function(M) dist(t(apply(M, 2, rank)), "manhattan"))
 
-clust(G_DE, Rat_DE, Mouse_DE, fun = function(M) dist(t(apply(M, 2, rank)), "manhattan"), sel = sel)
-
 
 clust(G, Rat, Mouse)
 
@@ -754,8 +785,6 @@ clust(G, Rat, Mouse, fun = function(M) as.dist(1-cor(M, method = "spearman")))
 
 clust(G, Rat, Mouse, fun = function(M) dist(t(apply(M, 2, rank)), "manhattan"))
 
-clust(G, Rat, Mouse, fun = function(M) dist(t(apply(M, 2, rank)), "manhattan"), sel = sel)
-
 
 clust(V, Rat, Mouse)
 
@@ -763,5 +792,10 @@ clust(V, Rat, Mouse, fun = function(M) as.dist(1-cor(M)))
 
 clust(V, Rat, Mouse, fun = function(M) dist(t(apply(M, 2, rank)), "manhattan"))
 
+clust(V, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)))
+
+clust(centr(V), Rat, Mouse, fun = function(M) as.dist(1-cor(M)))
+
+clust(centr(V), med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)))
 
 clust(V_ce, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)))
