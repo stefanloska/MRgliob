@@ -619,7 +619,7 @@ get_DE <- function(R, ctrl = "CTRL"){
   R[, pData(R)$class != ctrl]
 }
 
-R_DE <- get_DE(R)
+R_DE <- get_DE(R, ctrl = "Rat_Ctrl")
 G_DE <- get_DE(G, ctrl = "Control")
 
 
@@ -683,8 +683,8 @@ Mouse <- get_exprs(data_dir = "Mouse_data",
                    taxid = "10090")
 
 
-Rat_DE <- get_DE(Rat)
-Mouse_DE <- get_DE(Mouse)
+Rat_DE <- get_DE(Rat, ctrl = "Rat_Ctrl")
+Mouse_DE <- get_DE(Mouse, ctrl = "Mouse_Ctrl")
 G_DE <- get_DE(G, ctrl = "Control")
 
 clust(G_DE, Rat_DE, Mouse_DE)
