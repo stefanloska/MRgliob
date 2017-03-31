@@ -553,6 +553,7 @@ sel <- sapply(levels(pData(V)$class), function (x){
 })
 
 V_ce <- V[,sel]
+colnames(V_ce) <- levels(pData(V)$class)
 pData(V_ce) <- pData(V_ce)[, colnames(pData(V_ce)) != "id", drop = F]
 
 exprs(V_ce) <- sapply(levels(pData(V)$class), function (x){
@@ -574,6 +575,7 @@ download.file("https://tcga-data.nci.nih.gov/docs/publications/gbm_exp/ClaNC840_
 ces <- gdata::read.xls("ClaNC840_centroids.xls", header = T, row.names = 1,  stringsAsFactors = F, skip = 2, colClasses = c(NA, "NULL", rep(NA, 4)))
 ces <- ces[fData(V)$ALIAS, ]
 rownames(ces) <- rownames(fData(V))
+ces <- ces[,colnames(V_ce)]
 exprs(V_ce_) <- data.matrix(ces)
 
 
@@ -620,13 +622,14 @@ centr <- function(V){
   })
 
   V_ce <- V[,sel]
-
+  colnames(V_ce) <- levels(pData(V)$class)
   pData(V_ce) <- pData(V_ce)[, colnames(pData(V_ce)) != "id", drop = F]
 
   exprs(V_ce) <- sapply(levels(pData(V)$class), function (x){
     ge <- exprs(V)[, pData(V)$class == x]
     rowMeans(ge)
   })
+
 
   V_ce
 }
@@ -637,11 +640,13 @@ get_ces <- function(V, ces_file){
   })
 
   V_ce <- V[,sel]
+  colnames(V_ce) <- levels(pData(V)$class)
   pData(V_ce) <- pData(V_ce)[, colnames(pData(V_ce)) != "id", drop = F]
 
   ces <- gdata::read.xls(ces_file, header = T, row.names = 1,  stringsAsFactors = F, skip = 2, colClasses = c(NA, "NULL", rep(NA, 4)))
   ces <- ces[fData(V)$ALIAS, ]
   rownames(ces) <- rownames(fData(V))
+  ces <- ces[,colnames(V_ce)]
   exprs(V_ce) <- data.matrix(ces)
 
   V_ce
@@ -820,6 +825,9 @@ clust(V_ce, med_norm(Rat), fun = function(M) as.dist(1-cor(M)), method = "averag
 
 clust(V_ce, med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "average")
 
+clust(V, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "average")
+
+clust(G_DE, Rat_DE, Mouse_DE, fun = function(M) as.dist(1-cor(M)), method = "average")
 
 load("/home/stefan/Nenecki/microarray_data/Michal/Rat/xxx/exprs.RData")
 
