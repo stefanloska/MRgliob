@@ -735,7 +735,7 @@ med_norm <-  function(R){
   R
 }
 
-clust <- function(..., fun = function(M) dist(t(M)), sel = rownames(eData[[1]])){
+clust <- function(..., fun = function(M) dist(t(M)), method = "complete", sel = rownames(eData[[1]])){
   eData <- list(...)
 
   sel <- Reduce(intersect, lapply(eData, rownames), sel)
@@ -744,7 +744,7 @@ clust <- function(..., fun = function(M) dist(t(M)), sel = rownames(eData[[1]]))
 
   d <- fun(M)
 
-  hc <- hclust(d)
+  hc <- hclust(d, method = method)
   plot(hc, labels = unlist(sapply(eData, function(x){pData(x)$class})))
 
   invisible(hc)
@@ -798,8 +798,60 @@ clust(centr(V), Rat, Mouse, fun = function(M) as.dist(1-cor(M)))
 
 clust(centr(V), med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)))
 
+
+
 clust(V_ce, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)))
 
 clust(V_ce, med_norm(Rat), fun = function(M) as.dist(1-cor(M)))
 
 clust(V_ce, med_norm(Mouse), fun = function(M) as.dist(1-cor(M)))
+
+
+clust(V_ce, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "mcquitty")
+
+clust(V_ce, med_norm(Rat), fun = function(M) as.dist(1-cor(M)), method = "mcquitty")
+
+clust(V_ce, med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "mcquitty")
+
+
+clust(V_ce, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "average")
+
+clust(V_ce, med_norm(Rat), fun = function(M) as.dist(1-cor(M)), method = "average")
+
+clust(V_ce, med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "average")
+
+
+load("/home/stefan/Nenecki/microarray_data/Michal/Rat/xxx/exprs.RData")
+
+
+dim(XXs_n)
+
+rownames(XXs_n) <- toupper(rownames(XXs_n))
+
+sum(fData(V_ce)$ALIAS %in% rownames(XXs_n))
+V_ce_ <- V_ce[fData(V_ce)$ALIAS %in% rownames(XXs_n),]
+
+clust(V_ce_, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "average")
+
+clust(V_ce_, med_norm(Rat), fun = function(M) as.dist(1-cor(M)), method = "average")
+
+clust(V_ce_, med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "average")
+
+
+XX <- XXs_n [fData(V_ce_)$ALIAS,]
+rownames(XX) <- rownames(V_ce_)
+
+summary(exprs(V_ce_) - XX[9:12])
+
+
+XX <- data.matrix(XX)
+XX <- ExpressionSet(XX, AnnotatedDataFrame(data.frame(class = colnames(XX), row.names = colnames(XX))))
+
+clust(XX, fun = function(M) as.dist(1-cor(M)), method = "average")
+
+XX <- XX [,1:8 ]
+
+clust(V_ce_, XX, fun = function(M) as.dist(1-cor(M)), method = "average")
+
+
+
