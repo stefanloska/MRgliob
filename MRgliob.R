@@ -2,6 +2,18 @@ library(oligo)
 library(Biobase)
 library(AnnotationDbi)
 
+# gene homology data
+download.file("ftp://ftp.ncbi.nih.gov/pub/HomoloGene/build68/homologene.data", "homologene.data")
+
+# GEO Data
+download.file("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE12nnn/GSE12657/matrix/GSE12657_series_matrix.txt.gz",
+              "GSE12657_series_matrix.txt.gz")
+
+# Verhaak data
+download.file("https://tcga-data.nci.nih.gov/docs/publications/gbm_exp/TCGA_unified_CORE_ClaNC840.txt", "Verhaak.tsv")
+download.file("https://tcga-data.nci.nih.gov/docs/publications/gbm_exp/ClaNC840_centroids.xls", "ClaNC840_centroids.xls")
+
+
 # Get expression ####
 
 # Read data ####
@@ -164,8 +176,6 @@ R <- R[sel,]
 
 # Convert to human ####
 
-# get the data
-download.file("ftp://ftp.ncbi.nih.gov/pub/HomoloGene/build68/homologene.data", "homologene.data")
 
 #read the file
 hom <- read.delim("homologene.data", header = F,
@@ -309,8 +319,6 @@ get_exprs <- function(data_dir, s_info, skip = NULL, annot, hom, taxid){
   R
 }
 
-download.file("ftp://ftp.ncbi.nih.gov/pub/HomoloGene/build68/homologene.data", "homologene.data")
-
 hom <- read.delim("homologene.data", header = F,
                   colClasses = c("character", "character", "character", "NULL", "NULL", "NULL"),
                   col.names = c("id", "tax", "entrez", "NULL", "NULL", "NULL"))
@@ -368,13 +376,6 @@ pca(R)
 
 
 # GEO data ####
-
-download.file("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE12nnn/GSE12657/matrix/GSE12657_series_matrix.txt.gz",
-              "GSE12657_series_matrix.txt.gz")
-
-download.file("https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE12657&format=file",
-              "GSE12657_RAW.tar")
-
 
 # ad hoc way ####
 pd <- read.delim("GSE12657_series_matrix.txt.gz", row.names = 1, header = F, skip = 35, nrows = 1)
@@ -482,8 +483,6 @@ build_GEO <- function(geo_file, annot, hom, taxid){
   G
 }
 
-download.file("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE12nnn/GSE12657/matrix/GSE12657_series_matrix.txt.gz",
-              "GSE12657_series_matrix.txt.gz")
 
 G <- build_GEO("GSE12657_series_matrix.txt.gz", hgu95av2.db::hgu95av2.db, hom, "9606")
 
@@ -491,8 +490,6 @@ pca(G, lbs = pData(G)$class)
 
 
 # Verhaak ####
-
-download.file("https://tcga-data.nci.nih.gov/docs/publications/gbm_exp/TCGA_unified_CORE_ClaNC840.txt", "Verhaak.tsv")
 
 # pheno data
 pd <- read.delim("Verhaak.tsv", header = F, nrow = 2)
@@ -571,7 +568,6 @@ View(exprs(V_ce))
 
 # from ready data:
 V_ce_ <- V_ce
-download.file("https://tcga-data.nci.nih.gov/docs/publications/gbm_exp/ClaNC840_centroids.xls", "ClaNC840_centroids.xls")
 ces <- gdata::read.xls("ClaNC840_centroids.xls", header = T, row.names = 1,  stringsAsFactors = F, skip = 2, colClasses = c(NA, "NULL", rep(NA, 4)))
 ces <- ces[fData(V)$ALIAS, ]
 rownames(ces) <- rownames(fData(V))
@@ -652,13 +648,9 @@ get_ces <- function(V, ces_file){
   V_ce
 }
 
-download.file("https://tcga-data.nci.nih.gov/docs/publications/gbm_exp/TCGA_unified_CORE_ClaNC840.txt", "Verhaak.tsv")
-
 V <- read_ver("Verhaak.tsv")
 
 V_ce <- centr(V)
-
-download.file("https://tcga-data.nci.nih.gov/docs/publications/gbm_exp/ClaNC840_centroids.xls", "ClaNC840_centroids.xls")
 
 V_ce <- get_ces(V, "ClaNC840_centroids.xls")
 
