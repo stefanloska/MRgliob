@@ -740,7 +740,7 @@ med_norm <-  function(R){
   R
 }
 
-clust <- function(..., fun = function(M) dist(t(M)), method = "complete", sel = rownames(eData[[1]])){
+clust <- function(..., fun = function(M) dist(t(M)), method = "complete", sel = rownames(eData[[1]]), cex = par()$cex){
   eData <- list(...)
 
   sel <- Reduce(intersect, lapply(eData, rownames), sel)
@@ -750,11 +750,10 @@ clust <- function(..., fun = function(M) dist(t(M)), method = "complete", sel = 
   d <- fun(M)
 
   hc <- hclust(d, method = method)
-  plot(hc, labels = unlist(sapply(eData, function(x){pData(x)$class})))
+  plot(hc, labels = unlist(sapply(eData, function(x){pData(x)$class})), cex = cex)
 
   invisible(hc)
 }
-
 
 Rat <- get_exprs(data_dir = "Rat_data",
                  s_info = "sample_info.txt",
