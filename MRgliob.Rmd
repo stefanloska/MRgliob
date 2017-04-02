@@ -459,5 +459,7 @@ clust(V_ce, med_norm(Rat), fun = function(M) as.dist(1-cor(M)), method = "averag
 
 clust(V_ce, med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "average")
 
+heatm(V, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)))
+
 ```
 
