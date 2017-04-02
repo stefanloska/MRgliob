@@ -755,6 +755,25 @@ clust <- function(..., fun = function(M) dist(t(M)), method = "complete", sel = 
   invisible(hc)
 }
 
+heatm <- function(..., fun = function(M) dist(t(M)), method = "complete", sel = rownames(eData[[1]])){
+  eData <- list(...)
+
+  sel <- Reduce(intersect, lapply(eData, rownames), sel)
+  eData <- lapply(eData, function(x){x[sel,]})
+  M <- do.call(cbind, lapply(eData, exprs))
+
+  cols <- colorRampPalette(c("#40FF40", "#FF0404"))(10)
+
+  class <- unlist(sapply(eData, function(x){pData(x)$class}))
+  hm <- heatmap(M, Rowv = NULL, Colv = NULL, labRow = c(""), labCol = c(""),
+                distfun = function(x) fun(t(x)), hclustfun = function(d) hclust(d, method = method),
+                col = cols, ColSideColors = palette()[as.numeric(class) + 1])
+  col_key <- levels(class)
+  legend("topleft", col_key, col = palette()[seq_along(col_key) + 1], lty = c(-1, -1), pch = c(19, 19))
+
+  invisible(hm)
+}
+
 Rat <- get_exprs(data_dir = "Rat_data",
                  s_info = "sample_info.txt",
                  annot = ragene21sttranscriptcluster.db::ragene21sttranscriptcluster.db,
@@ -810,6 +829,7 @@ clust(V, Rat, Mouse, fun = function(M) as.dist(1-cor(M)))
 clust(V, Rat, Mouse, fun = function(M) dist(t(apply(M, 2, rank)), "manhattan"))
 
 clust(V, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), cex = 0.6) ###############
+heatm(V, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M))) ###############
 
 clust(V, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "average")
 
