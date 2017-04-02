@@ -809,7 +809,7 @@ clust(V, Rat, Mouse, fun = function(M) as.dist(1-cor(M)))
 
 clust(V, Rat, Mouse, fun = function(M) dist(t(apply(M, 2, rank)), "manhattan"))
 
-clust(V, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M))) ###############
+clust(V, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), cex = 0.6) ###############
 
 clust(V, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "average")
 
