@@ -60,17 +60,17 @@ Get annotation and remove probes mapping to more than one gene.
 annotate <- function(R, annot){
   # choose columns for feature data
   fd <- select(annot, keys = rownames(R), keytype = "PROBEID", columns = c("ENTREZID", "SYMBOL", "GENENAME"))
-  
+
   fd <- fd[!is.na(fd$ENTREZID),]
-  
+
   freq <- table(fd$PROBEID)
   dambg <- names(freq)[freq == 1]
   fd <- fd[fd$PROBEID %in% dambg, ]
   rownames(fd) <- fd$PROBEID
-  
+
   R <- R[rownames(fd)]
   fData(R) <- fd
-  
+
   R
 }
 
@@ -82,16 +82,16 @@ Pick up one probe for each gene. This will be the probe with the highest varianc
 dedegen <- function(R){
   # keep only one probeset per gene; this will be the one with highest variance
   sel <- tapply(seq_along(fData(R)$ENTREZID), fData(R)$ENTREZID, c)
-  
+
   sel <- tapply(seq_along(fData(R)$ENTREZID), fData(R)$ENTREZID, function(x){
     if (length(x) == 1) x else{
       vars <- apply(exprs(R)[x,], 1, var, na.rm = T)
       x[which.max(vars)]
     }
   })
-  
+
   sel <- as.vector(sel)
-  
+
   R <- R[sel,]
   R
 }
@@ -155,11 +155,11 @@ hom <- read.delim("homologene.data", header = F,
                   colClasses = c("character", "character", "character", "NULL", "NULL", "NULL"),
                   col.names = c("id", "tax", "entrez", "NULL", "NULL", "NULL"))
 
-Rat <- get_exprs(data_dir = "Rat_data", 
-          s_info = "sample_info.txt", 
-          annot = ragene21sttranscriptcluster.db::ragene21sttranscriptcluster.db, 
-          hom = hom, 
-          taxid = "10116")
+Rat <- get_exprs(data_dir = "Rat_data",
+                 s_info = "sample_info.txt",
+                 annot = ragene21sttranscriptcluster.db::ragene21sttranscriptcluster.db,
+                 hom = hom,
+                 taxid = "10116")
 
 Mouse <- get_exprs(data_dir = "Mouse_data", 
           s_info = "sample_info.txt", 
