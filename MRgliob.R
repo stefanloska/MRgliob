@@ -777,9 +777,22 @@ clust(G_DE, Rat_DE, Mouse_DE)
 
 clust(G_DE, Rat_DE, Mouse_DE, fun = function(M) as.dist(1-cor(M)))
 
-clust(G_DE, Rat_DE, Mouse_DE, fun = function(M) as.dist(1-cor(M, method = "spearman")))
+clust(G_DE, Rat_DE, Mouse_DE, fun = function(M) as.dist(1-cor(M, method = "spearman")), method = "complete") ##################
+
+clust(G_DE, Rat_DE, fun = function(M) as.dist(1-cor(M, method = "spearman")), method = "complete")           ##################
+
+clust(G_DE, Mouse_DE, fun = function(M) as.dist(1-cor(M, method = "spearman")), method = "complete")         ##################
 
 clust(G_DE, Rat_DE, Mouse_DE, fun = function(M) dist(t(apply(M, 2, rank)), "manhattan"))
+
+
+clust(G_DE, Rat_DE, Mouse_DE, fun = function(M) as.dist(1-cor(M, method = "spearman")), method = "mcquitty")
+
+clust(G_DE, Rat_DE, Mouse_DE, fun = function(M) dist(t(apply(M, 2, rank)), "manhattan"), method = "mcquitty")
+
+clust(G_DE, Rat_DE, Mouse_DE, fun = function(M) as.dist(1-cor(M, method = "spearman")), method = "average")
+
+clust(G_DE, Rat_DE, Mouse_DE, fun = function(M) dist(t(apply(M, 2, rank)), "manhattan"), method = "average")
 
 
 clust(G, Rat, Mouse)
@@ -797,37 +810,41 @@ clust(V, Rat, Mouse, fun = function(M) as.dist(1-cor(M)))
 
 clust(V, Rat, Mouse, fun = function(M) dist(t(apply(M, 2, rank)), "manhattan"))
 
-clust(V, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)))
+clust(V, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M))) ###############
+
+clust(V, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "average")
+
 
 clust(centr(V), Rat, Mouse, fun = function(M) as.dist(1-cor(M)))
 
 clust(centr(V), med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)))
 
 
+clust(V_ce, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "complete") ##################
 
-clust(V_ce, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)))
+clust(V_ce, med_norm(Rat), fun = function(M) as.dist(1-cor(M)), method = "complete")                  ##################
 
-clust(V_ce, med_norm(Rat), fun = function(M) as.dist(1-cor(M)))
-
-clust(V_ce, med_norm(Mouse), fun = function(M) as.dist(1-cor(M)))
-
-
-clust(V_ce, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "mcquitty")
-
-clust(V_ce, med_norm(Rat), fun = function(M) as.dist(1-cor(M)), method = "mcquitty")
-
-clust(V_ce, med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "mcquitty")
+clust(V_ce, med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "complete")                ##################
 
 
-clust(V_ce, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "average")
+clust(V_ce, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "mcquitty") ##################
 
-clust(V_ce, med_norm(Rat), fun = function(M) as.dist(1-cor(M)), method = "average")
+clust(V_ce, med_norm(Rat), fun = function(M) as.dist(1-cor(M)), method = "mcquitty")                  ##################
 
-clust(V_ce, med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "average")
+clust(V_ce, med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "mcquitty")                ##################
 
-clust(V, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "average")
 
-clust(G_DE, Rat_DE, Mouse_DE, fun = function(M) as.dist(1-cor(M)), method = "average")
+clust(V_ce, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "average") ##################
+
+clust(V_ce, med_norm(Rat), fun = function(M) as.dist(1-cor(M)), method = "average")                  ##################
+
+clust(V_ce, med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "average")                ##################
+
+
+clust(V_ce, med_norm(Rat), med_norm(Mouse), fun = function(M) dist(t(apply(M, 2, rank)), "manhattan"))
+
+clust(V_ce, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M, method = "spearman")))
+
 
 load("/home/stefan/Nenecki/microarray_data/Michal/Rat/xxx/exprs.RData")
 

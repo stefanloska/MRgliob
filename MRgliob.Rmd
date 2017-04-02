@@ -321,6 +321,8 @@ download.file("https://tcga-data.nci.nih.gov/docs/publications/gbm_exp/TCGA_unif
 
 V <- read_ver("Verhaak.tsv")
 
+pca(V, lbs = c())
+
 ```
 
 
@@ -408,13 +410,34 @@ clust <- function(..., fun = function(M) dist(t(M)), method = "complete", sel = 
 ### With GEO data
 
 ```{r}
-clust(G_DE, Rat_DE, Mouse_DE, fun = function(M) dist(t(apply(M, 2, rank)), "manhattan"))
+clust(G_DE, Rat_DE, fun = function(M) as.dist(1-cor(M, method = "spearman")))
+clust(G_DE, Mouse_DE, fun = function(M) as.dist(1-cor(M, method = "spearman")))
+clust(G_DE, Rat_DE, Mouse_DE, fun = function(M) as.dist(1-cor(M, method = "spearman")))
 ```
 
 
 ### With Verhaak data
 
 ```{r}
+clust(V_ce, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "complete")
+
+clust(V_ce, med_norm(Rat), fun = function(M) as.dist(1-cor(M)), method = "complete")
+
+clust(V_ce, med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "complete")
+
+
+clust(V_ce, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "mcquitty")
+
+clust(V_ce, med_norm(Rat), fun = function(M) as.dist(1-cor(M)), method = "mcquitty")
+
+clust(V_ce, med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "mcquitty")
+
+
 clust(V_ce, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "average")
+
+clust(V_ce, med_norm(Rat), fun = function(M) as.dist(1-cor(M)), method = "average")
+
+clust(V_ce, med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "average")
+
 ```
 
