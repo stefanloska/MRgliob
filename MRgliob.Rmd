@@ -9,7 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r, libraries}
+```{r, message=FALSE}
 library(oligo)
 library(Biobase)
 library(AnnotationDbi)
@@ -17,17 +17,19 @@ library(AnnotationDbi)
 
 # Introduction
 
+The aim of this analysis was to compare gene expression profile observed in rat (C6) and mouse (GL) glioblastoma model to those observed in human to determine which of these two models better mimics the human landscape.
+
 # Downloading the data
 
 ```{r, eval=FALSE}
 # gene homology data
 download.file("ftp://ftp.ncbi.nih.gov/pub/HomoloGene/build68/homologene.data", "homologene.data")
 
-# GEO Data
+# GEO Data: GSE12657, Expression data from human glioma samples
 download.file("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE12nnn/GSE12657/matrix/GSE12657_series_matrix.txt.gz",
               "GSE12657_series_matrix.txt.gz")
 
-# Verhaak data
+# Verhaak data: Verhaak RG, Hoadley KA, Purdom E, et al: Integrated genomic analysis identifies clinically relevant subtypes of glioblastoma characterized by abnormalities in PDGFRA, IDH1, EGFR, and NF1. Cancer Cell. 2010 Jan 19;17(1):98-110
 download.file("https://tcga-data.nci.nih.gov/docs/publications/gbm_exp/TCGA_unified_CORE_ClaNC840.txt", "Verhaak.tsv")
 download.file("https://tcga-data.nci.nih.gov/docs/publications/gbm_exp/ClaNC840_centroids.xls", "ClaNC840_centroids.xls")
 
@@ -171,7 +173,11 @@ get_exprs <- function(data_dir, s_info, skip = NULL, annot, hom, taxid){
 hom <- read.delim("homologene.data", header = F,
                   colClasses = c("character", "character", "character", "NULL", "NULL", "NULL"),
                   col.names = c("id", "tax", "entrez", "NULL", "NULL", "NULL"))
+```
 
+
+
+```{r preproc, cache=T}
 Rat <- get_exprs(data_dir = "Rat_data",
                  s_info = "sample_info.txt",
                  annot = ragene21sttranscriptcluster.db::ragene21sttranscriptcluster.db,
@@ -239,7 +245,7 @@ Rat <- get_exprs(data_dir = "Rat_data",
 ```
 
 
-PCA fter removing outliers:
+PCA after removing outliers:
 
 ```{r}
 pca(Rat)
@@ -248,6 +254,7 @@ pca(Rat)
 
 # Getting GEO data
 
+Dataset GSE12657 titled "Expression data from human glioma samples" was obtained from GEO database.
 
 ```{r}
 read_geo <- function(geo_file){
@@ -293,6 +300,14 @@ pca(G, lbs = pData(G)$class)
 
 
 # Getting Verhaak data
+
+These data come from:
+
+Verhaak RG, Hoadley KA, Purdom E, et al
+
+Integrated genomic analysis identifies clinically relevant subtypes of glioblastoma characterized by abnormalities in PDGFRA, IDH1, EGFR, and NF1.
+
+Cancer Cell. 2010 Jan 19;17(1):98-110
 
 ## Expression data
 
@@ -427,7 +442,7 @@ heatm <- function(..., fun = function(M) dist(t(M)), method = "complete", sel = 
                 distfun = function(x) fun(t(x)), hclustfun = function(d) hclust(d, method = method),
                 col = cols, ColSideColors = palette()[as.numeric(class) + 1])
   col_key <- levels(class)
-  legend("topleft", col_key, col = palette()[seq_along(col_key) + 1], lty = c(-1, -1), pch = c(19, 19))
+  legend("topleft", col_key, col = palette()[seq_along(col_key) + 1], lty = c(-1, -1), pch = c(19, 19), cex = 0.5)
 
   invisible(hm)
 }
@@ -440,22 +455,39 @@ heatm <- function(..., fun = function(M) dist(t(M)), method = "complete", sel = 
 
 ### With GEO data
 
+Both rat and mouse models show similarity to glioblastoma and pilocytic astrocytoma. Oligodendroglioma and control samples tend to form separate clusters. Similar pattern is observed when clustering is performed with rat and mouse samples separately and using all samples altogether.
+
 ```{r}
+clust(G_DE, Rat_DE, Mouse_DE, fun = function(M) as.dist(1-cor(M, method = "spearman")))
 clust(G_DE, Rat_DE, fun = function(M) as.dist(1-cor(M, method = "spearman")))
 clust(G_DE, Mouse_DE, fun = function(M) as.dist(1-cor(M, method = "spearman")))
-clust(G_DE, Rat_DE, Mouse_DE, fun = function(M) as.dist(1-cor(M, method = "spearman")))
 ```
 
 
 ### With Verhaak data
 
+Using complete method of clustering and rat and mouse samples together with centroids of glioblastoma subclasses defined by Verhaak et al, rat and mouse tumour models form a cluster with mesenchymal glioblastoma.
+
 ```{r}
 clust(V_ce, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "complete")
+```
 
+The situation differs if rat and mouse samples are analysed separately. Rat tumour model is still similar to mesenchymal glioblastoma:
+
+```{r}
 clust(V_ce, med_norm(Rat), fun = function(M) as.dist(1-cor(M)), method = "complete")
+```
 
+while mouse tumour model clusters separate to all human glioblastoma subclasses:
+
+```{r}
 clust(V_ce, med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "complete")
 
+```
+
+However, this difference between rat and mouse tumours is not observed when using mcquitty or average methods. In these cases, both rat and mouse tumours clustered together with mesenchymal glioblastoma.
+
+```{r}
 
 clust(V_ce, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "mcquitty")
 
@@ -470,7 +502,18 @@ clust(V_ce, med_norm(Rat), fun = function(M) as.dist(1-cor(M)), method = "averag
 
 clust(V_ce, med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "average")
 
-heatm(V, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)))
+```
+
+Below is presented a heatmap for individual samples from Verhaak et al data together with the rat and mouse samples:
+
+```{r, fig.width=10, fig.height=10}
+
+heatm(V, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "complete")
 
 ```
+
+# Conclusions
+
+Both rat and mouse models seam to be similar to human mesenchymal glioblastoma. The rat model may better mimic mesenchymal glioblastoma than the mouse model, as observed in results of some clustering methods.
+
 
