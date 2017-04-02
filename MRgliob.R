@@ -761,7 +761,7 @@ heatm <- function(..., fun = function(M) dist(t(M)), method = "complete", sel = 
                 distfun = function(x) fun(t(x)), hclustfun = function(d) hclust(d, method = method),
                 col = cols, ColSideColors = palette()[as.numeric(class) + 1])
   col_key <- levels(class)
-  legend("topleft", col_key, col = palette()[seq_along(col_key) + 1], lty = c(-1, -1), pch = c(19, 19))
+  legend("topleft", col_key, col = palette()[seq_along(col_key) + 1], lty = c(-1, -1), pch = c(19, 19), cex = 0.5)
 
   invisible(hm)
 }
