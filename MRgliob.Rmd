@@ -15,7 +15,7 @@ library(Biobase)
 library(AnnotationDbi)
 ```
 
-# Get expression
+# Preparing microarray data
 
 ## Reading data
 
@@ -147,7 +147,7 @@ get_exprs <- function(data_dir, s_info, skip = NULL, annot, hom, taxid){
 ```
 
 
-# Execute on data
+## Execute on data
 
 ```{r}
 download.file("ftp://ftp.ncbi.nih.gov/pub/HomoloGene/build68/homologene.data", "homologene.data")
@@ -170,9 +170,7 @@ Mouse <- get_exprs(data_dir = "Mouse_data",
 ```
 
 
-# PCA
-
-## PCA plot
+## PCA
 
 ```{r}
 pca <- function(R, lbs = pData(R)$id){
@@ -200,6 +198,8 @@ pca <- function(R, lbs = pData(R)$id){
 ```
 
 
+Plotting PCA:
+
 ```{r}
 
 pca(Rat)
@@ -222,17 +222,199 @@ Rat <- get_exprs(data_dir = "Rat_data",
 ```
 
 
-## After removing outliers
+PCA fter removing outliers:
 
 ```{r}
 pca(Rat)
 ```
 
 
-
+# Getting GEO data
 
 
 ```{r}
+read_geo <- function(geo_file){
+  tab <- readLines(geo_file)
+  meta <- grepl("^!|^$", tab)
+
+  pd <- grep("^!Sample_characteristics|^\"ID_REF\"", tab, value = T)
+  pd <- gsub("\"", "", pd)
+  pd <- strsplit(pd , "\t")
+  pd <- do.call(cbind, pd)
+  pd <- pd[-1, ]
+  pd <- data.frame(class = factor(pd[, 1]), id = pd[, 2], stringsAsFactors = F)
+  rownames(pd) <- pd$id
+
+  ge <- tab[!meta]
+  ge <- gsub("\"", "", ge)
+  ge <- strsplit(ge , "\t")
+  ge <- do.call(rbind, ge)
+  colnames(ge) <- ge[1, ]
+  rownames(ge) <- ge[, 1]
+  ge <- ge[-1, -1]
+  mode(ge) <- "numeric"
+  ge <- log2(ge)
+
+  G <- ExpressionSet(ge, AnnotatedDataFrame(pd))
+
+  G
+}
+
+build_GEO <- function(geo_file, annot, hom, taxid){
+  G <- read_geo(geo_file)
+  G <- annotate(G, annot)
+  G <- dedegen(G)
+  G <- to_human(G, hom, taxid)
+  G
+}
+
+download.file("ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE12nnn/GSE12657/matrix/GSE12657_series_matrix.txt.gz",
+              "GSE12657_series_matrix.txt.gz")
+
+G <- build_GEO("GSE12657_series_matrix.txt.gz", hgu95av2.db::hgu95av2.db, hom, "9606")
+
+pca(G, lbs = pData(G)$class)
 ```
 
+
+# Getting Verhaak data
+
+## Expression data
+
+```{r}
+read_ver <- function(ver_file){
+  # pheno data
+  pd <- read.delim(ver_file, header = F, nrow = 2)
+  pd <- t(pd[, -(1:2)])
+  pd <- data.frame(class = (factor(pd[,2])), id = pd[,1], stringsAsFactors = F)
+  rownames(pd) <- pd$id
+
+  # gene expression
+  ge <- read.delim("Verhaak.tsv", header = F, skip = 2, row.names = 1, colClasses = c(NA, "NULL", rep("numeric", nrow(pd))))
+  colnames(ge) <- pd$id
+  ge <- data.matrix(ge)
+
+  # feature data
+  fd <- select(org.Hs.eg.db::org.Hs.eg.db, rownames(ge), keys = rownames(ge), keytype = "ALIAS", columns = c("ENTREZID", "SYMBOL", "GENENAME"))
+
+  # pick up gene symbols/aliases that can be translated to entrez id unambigiously
+  da <- table(fd$ALIAS)
+  da <- names(da[da == 1]) # disambigous aliases
+  de <- table(fd$ENTREZID)
+  de <- names(de[de == 1]) # disambigous entrez ids
+  fd <- fd[fd$ALIAS %in% da & fd$ENTREZID %in% de,]
+
+  fd$HUMENTREZID <- fd$ENTREZID
+  rownames(fd) <- fd$HUMENTREZID
+
+  # limit gene expression to new gene set
+  all(fd$ALIAS %in% rownames(ge))
+  ge <- ge[fd$ALIAS,]
+  rownames(ge) <- rownames(fd)
+
+  # create eSet
+  V <- ExpressionSet(ge, AnnotatedDataFrame(pd), AnnotatedDataFrame(fd))
+  V
+}
+
+download.file("https://tcga-data.nci.nih.gov/docs/publications/gbm_exp/TCGA_unified_CORE_ClaNC840.txt", "Verhaak.tsv")
+
+V <- read_ver("Verhaak.tsv")
+
+```
+
+
+## Centroids
+
+```{r}
+get_ces <- function(V, ces_file){
+  sel <- sapply(levels(pData(V)$class), function (x){
+    which(pData(V)$class == x)[1]
+  })
+
+  V_ce <- V[,sel]
+  colnames(V_ce) <- levels(pData(V)$class)
+  pData(V_ce) <- pData(V_ce)[, colnames(pData(V_ce)) != "id", drop = F]
+
+  ces <- gdata::read.xls(ces_file, header = T, row.names = 1,  stringsAsFactors = F, skip = 2, colClasses = c(NA, "NULL", rep(NA, 4)))
+  ces <- ces[fData(V)$ALIAS, ]
+  rownames(ces) <- rownames(fData(V))
+  ces <- ces[,colnames(V_ce)]
+  exprs(V_ce) <- data.matrix(ces)
+
+  V_ce
+}
+
+download.file("https://tcga-data.nci.nih.gov/docs/publications/gbm_exp/ClaNC840_centroids.xls", "ClaNC840_centroids.xls")
+
+V_ce <- get_ces(V, "ClaNC840_centroids.xls")
+
+```
+
+
+# Clustering
+
+## Data modification
+
+```{r}
+get_DE <- function(R, ctrl = "CTRL"){
+  base <- rowMeans(exprs(R)[, pData(R)$class == ctrl])
+  exprs(R) <- sweep(exprs(R), 1, base)
+  R#[, pData(R)$class != ctrl]
+}
+
+z_score <- function(R){
+  exprs(R) <- sweep(exprs(R), 1, rowMeans(exprs(R)))
+  exprs(R) <- sweep(exprs(R), 1 , apply(exprs(R), 1, sd), "/")
+  R
+}
+
+med_norm <-  function(R){
+  exprs(R) <- sweep(exprs(R), 1 , apply(exprs(R), 1, median))
+  R
+}
+
+
+Rat_DE <- get_DE(Rat, ctrl = "Rat_Ctrl")
+Mouse_DE <- get_DE(Mouse, ctrl = "Mouse_Ctrl")
+G_DE <- get_DE(G, ctrl = "Control")
+
+```
+
+
+## Clustering function
+
+```{r}
+clust <- function(..., fun = function(M) dist(t(M)), method = "complete", sel = rownames(eData[[1]])){
+  eData <- list(...)
+
+  sel <- Reduce(intersect, lapply(eData, rownames), sel)
+  eData <- lapply(eData, function(x){x[sel,]})
+  M <- do.call(cbind, lapply(eData, exprs))
+
+  d <- fun(M)
+
+  hc <- hclust(d, method = method)
+  plot(hc, labels = unlist(sapply(eData, function(x){pData(x)$class})))
+
+  invisible(hc)
+}
+
+```
+
+
+## Clustering results
+
+### With GEO data
+
+```{r}
+clust(G_DE, Rat_DE, Mouse_DE, fun = function(M) dist(t(apply(M, 2, rank)), "manhattan"))
+```
+
+
+### With Verhaak data
+
+```{r}
+clust(V_ce, med_norm(Rat), med_norm(Mouse), fun = function(M) as.dist(1-cor(M)), method = "average")
+```
 
